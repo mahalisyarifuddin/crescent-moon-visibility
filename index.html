@@ -28,6 +28,14 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 .group { flex: 1; }
 .info { font-size: .9rem; opacity: .8; line-height: 1.6; }
 #map { width: 100%; height: 500px; border: 1px solid var(--border); border-radius: 4px; margin-top: 1rem; }
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+.tab { background: transparent; border: none; border-bottom: 3px solid transparent; border-radius: 0; cursor: pointer; padding: 0.5rem 1rem; font-weight: 600; color: var(--text); opacity: 0.6; width: auto; }
+.tab:hover { background: var(--muted); opacity: 1; }
+.tab.active { border-bottom-color: var(--primary); opacity: 1; }
+#results { margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+.result-card { background: var(--surface); padding: 1rem; border-radius: 4px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.result-label { font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.25rem; }
+.result-value { font-size: 1.2rem; font-weight: bold; }
 @media(max-width: 768px) { .selectors { position: static; justify-content: end; margin-bottom: .5rem; } .row { flex-direction: column; } #map { height: 350px; } }
 
 		</style>
@@ -48,8 +56,14 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 
             <h1 id="mapTitle">Hilal Visibility Map</h1>
 
-            <div id="controls">
-                <div class="row">
+            <div class="tabs">
+                <button id="tabMap" class="tab active">Map</button>
+                <button id="tabCalc" class="tab">Detailed Calculations</button>
+            </div>
+
+            <div id="mapView">
+                <div id="controls">
+                    <div class="row">
                     <div class="group">
                         <label id="dateLabel" for="mapDate">Date</label>
                         <input type="date" id="mapDate">
@@ -93,6 +107,55 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 
             <div id="mapLegend" class="info" style="margin-top:0.5rem">
                 <span style="display:inline-block;width:12px;height:12px;background:rgba(0, 255, 0, 0.5);margin-right:4px;border:1px solid green"></span><span id="legendVisible">Visible</span>
+            </div>
+            </div> <!-- End mapView -->
+
+            <div id="calcView" class="hidden">
+                <div class="row">
+                    <div class="group">
+                        <label id="calcDateLabel" for="calcDate">Date</label>
+                        <input type="date" id="calcDate">
+                    </div>
+                    <div class="group">
+                         <label id="calcLatLabel" for="calcLat">Latitude</label>
+                         <input type="number" id="calcLat" step="0.0001" placeholder="-6.2000">
+                    </div>
+                    <div class="group">
+                         <label id="calcLonLabel" for="calcLon">Longitude</label>
+                         <input type="number" id="calcLon" step="0.0001" placeholder="106.8166">
+                    </div>
+                </div>
+                 <div class="row">
+                     <div class="group">
+                        <label id="calcCriteriaLabel" for="calcCriteria">Criteria</label>
+                        <select id="calcCriteria">
+                            <option value="mabbims">MABBIMS</option>
+                            <option value="gic">Global Islamic</option>
+                            <option value="alt0">Altitude > 0°</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                     <div class="group">
+                         <button id="getLocation" class="secondary" style="margin-top: 1.7rem;">📍 Use My Location</button>
+                     </div>
+                </div>
+
+                <div class="row hidden" id="calcCustomCriteriaInputs">
+                    <div class="group">
+                        <label for="calcMinAlt">Min Altitude (°)</label>
+                        <input type="number" id="calcMinAlt" value="0" step="0.1">
+                    </div>
+                    <div class="group">
+                        <label for="calcMinElong">Min Elongation (°)</label>
+                        <input type="number" id="calcMinElong" value="0" step="0.1">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <button id="calculateBtn" class="primary">Calculate</button>
+                </div>
+
+                <div id="results"></div>
             </div>
 
 		</div>
@@ -309,7 +372,26 @@ self.onmessage = function(e) {
                     minAltLabel: 'Min Altitude (°)',
                     minElongLabel: 'Min Elongation (°)',
                     languageLabel: 'Language',
-					themeLabel: 'Theme'
+					themeLabel: 'Theme',
+                    calcDateLabel: 'Date',
+                    calcLatLabel: 'Latitude',
+                    calcLonLabel: 'Longitude',
+                    calcCriteriaLabel: 'Criteria',
+                    calculateBtn: 'Calculate',
+                    tabMap: 'Map',
+                    tabCalc: 'Detailed Calculations',
+                    getLocation: '📍 Use My Location',
+                    sunsetTime: 'Sunset Time',
+                    moonsetTime: 'Moonset Time',
+                    moonAge: 'Moon Age',
+                    moonAlt: 'Moon Altitude',
+                    moonElong: 'Elongation',
+                    moonAzimuth: 'Moon Azimuth',
+                    moonWidth: 'Moon Width',
+                    illuminatedFraction: 'Illuminated Fraction',
+                    visibilityStatus: 'Visibility Status',
+                    visible: 'Visible',
+                    notVisible: 'Not Visible'
 				},
 				id: {
 					autoTheme: 'Tema Otomatis',
@@ -324,7 +406,26 @@ self.onmessage = function(e) {
                     minAltLabel: 'Min Tinggi (°)',
                     minElongLabel: 'Min Elongasi (°)',
                     languageLabel: 'Bahasa',
-					themeLabel: 'Tema'
+					themeLabel: 'Tema',
+                    calcDateLabel: 'Tanggal',
+                    calcLatLabel: 'Lintang',
+                    calcLonLabel: 'Bujur',
+                    calcCriteriaLabel: 'Kriteria',
+                    calculateBtn: 'Hitung',
+                    tabMap: 'Peta',
+                    tabCalc: 'Hitung Detail',
+                    getLocation: '📍 Lokasi Saya',
+                    sunsetTime: 'Waktu Matahari Terbenam',
+                    moonsetTime: 'Waktu Bulan Terbenam',
+                    moonAge: 'Umur Bulan',
+                    moonAlt: 'Tinggi Bulan',
+                    moonElong: 'Elongasi',
+                    moonAzimuth: 'Azimuth Bulan',
+                    moonWidth: 'Lebar Bulan',
+                    illuminatedFraction: 'Fraksi Iluminasi',
+                    visibilityStatus: 'Status Visibilitas',
+                    visible: 'Terlihat',
+                    notVisible: 'Tidak Terlihat'
 				}
 			};
 			const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
@@ -342,7 +443,15 @@ self.onmessage = function(e) {
                     elements.mapCriteria.onchange = () => this.toggleCustom();
                     elements.mapRegion.onchange = () => this.handleRegionChange();
 
-                    elements.mapDate.valueAsDate = new Date();
+                    elements.tabMap.onclick = () => this.switchTab('map');
+                    elements.tabCalc.onclick = () => this.switchTab('calc');
+                    elements.calcCriteria.onchange = () => this.toggleCustomCalc();
+                    elements.calculateBtn.onclick = () => this.calculateDetails();
+                    elements.getLocation.onclick = () => this.getCurrentLocation();
+
+                    const today = new Date();
+                    elements.mapDate.valueAsDate = today;
+                    elements.calcDate.valueAsDate = today;
 
                     this.map = L.map('map').setView([-2.5, 118], 5);
                     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -372,6 +481,172 @@ self.onmessage = function(e) {
                 toggleCustom() {
                     const isCustom = elements.mapCriteria.value === 'custom';
                     elements.customCriteriaInputs.classList.toggle('hidden', !isCustom);
+                }
+
+                toggleCustomCalc() {
+                     const isCustom = elements.calcCriteria.value === 'custom';
+                     elements.calcCustomCriteriaInputs.classList.toggle('hidden', !isCustom);
+                }
+
+                switchTab(tab) {
+                    if (tab === 'map') {
+                        elements.tabMap.classList.add('active');
+                        elements.tabCalc.classList.remove('active');
+                        elements.mapView.classList.remove('hidden');
+                        elements.calcView.classList.add('hidden');
+                        setTimeout(() => this.map.invalidateSize(), 100);
+                    } else {
+                        elements.tabMap.classList.remove('active');
+                        elements.tabCalc.classList.add('active');
+                        elements.mapView.classList.add('hidden');
+                        elements.calcView.classList.remove('hidden');
+                    }
+                }
+
+                getCurrentLocation() {
+                     if (navigator.geolocation) {
+                         navigator.geolocation.getCurrentPosition(
+                             (position) => {
+                                 elements.calcLat.value = position.coords.latitude.toFixed(4);
+                                 elements.calcLon.value = position.coords.longitude.toFixed(4);
+                             },
+                             (error) => {
+                                 alert('Error getting location: ' + error.message);
+                             }
+                         );
+                     } else {
+                         alert('Geolocation is not supported by this browser.');
+                     }
+                }
+
+                calculateDetails() {
+                    const lat = parseFloat(elements.calcLat.value);
+                    const lon = parseFloat(elements.calcLon.value);
+                    const dateStr = elements.calcDate.value;
+                    const criteria = elements.calcCriteria.value;
+
+                    if (isNaN(lat) || isNaN(lon) || !dateStr) {
+                        alert('Please fill in all fields correctly.');
+                        return;
+                    }
+
+                    const dateObj = new Date(dateStr + 'T00:00:00Z');
+                    const observer = new Astronomy.Observer(lat, lon, 0);
+                    const date = Astronomy.MakeTime(dateObj);
+
+                    // 1. Calculate Sunset
+                    const sunset = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, -1, date.ut, 1);
+                    if (!sunset) {
+                         elements.results.innerHTML = '<div class="result-card">Error: Sun does not set on this date/location.</div>';
+                         return;
+                    }
+
+                    // 2. Moon properties at Sunset
+                    // Adjust to local time of observer if needed, but Astronomy works in UT.
+                    // We need to calculate moon position at the moment of sunset.
+
+                    const sunsetUT = sunset.ut; // This is UT time of sunset
+                    const moonEq = Astronomy.Equator(Astronomy.Body.Moon, sunsetUT, observer, true, true);
+                    const moonHor = Astronomy.Horizon(sunsetUT, observer, moonEq.ra, moonEq.dec, 'normal');
+                    const sunEq = Astronomy.Equator(Astronomy.Body.Sun, sunsetUT, observer, true, true);
+                    const elongation = Astronomy.AngleBetween(sunEq.vec, moonEq.vec);
+
+                    // Calculate Moon Age (Time since New Moon)
+                    const prevNewMoon = Astronomy.SearchMoonPhase(0, date.ut, -1);
+                    const ageInDays = prevNewMoon ? (sunsetUT - prevNewMoon.ut) : 0;
+
+                    const moonPhase = Astronomy.Illumination(Astronomy.Body.Moon, sunsetUT);
+
+                    // Calculate Moonset after Sunset
+                    const moonset = Astronomy.SearchRiseSet(Astronomy.Body.Moon, observer, -1, sunsetUT, 1);
+
+                    // Format times
+                    // We want to show local time relative to the user provided lat/lon or just UT?
+                    // The browser's date handling is tricky. Let's just output UT and maybe Local if we can guess offset.
+                    // Or just use the browser's timezone since the user is likely in that timezone if using "Use My Location".
+                    // But if they input a remote location, browser time is wrong.
+                    // Let's stick to showing simple time strings, maybe "HH:MM (UT)" or "HH:MM (Local)" depending on how we format.
+                    // Ideally we format to the timezone of the location, but we don't know it without an API.
+                    // We'll show UT for clarity or simple HH:MM and let user infer.
+                    // Actually, Astronomy.js returns UT double.
+
+                    const fmt = (ut) => {
+                        // Convert UT double to Date object
+                        if (!ut) return 'N/A';
+                        const d = ut.date;
+                        // Format to string.
+                        // Let's use simple UTC string for now.
+                        return d.toISOString().substring(11, 19) + ' UTC';
+                    };
+
+                    // Visibility Check
+                    let minAlt = 0, minElong = 0, isGIC = false;
+                    let customMinAlt = parseFloat(elements.calcMinAlt.value) || 0;
+                    let customMinElong = parseFloat(elements.calcMinElong.value) || 0;
+
+                    if (criteria === 'mabbims') { minAlt = 3; minElong = 6.4; }
+                    else if (criteria === 'gic') { minAlt = 5; minElong = 8; isGIC = true; }
+                    else if (criteria === 'alt0') { minAlt = 0; minElong = -100; }
+                    else if (criteria === 'custom') {
+                        minAlt = customMinAlt;
+                        minElong = customMinElong;
+                    }
+
+                    let visible = false;
+                    let visibleStatus = this.string('notVisible');
+                    let color = 'var(--danger)';
+                    let bg = 'var(--on-danger)';
+
+                     // GIC check: sunset must be before 12AM UTC? No, "before midnight".
+                     // The logic in map says: if (sunsetUT >= (date.ut + 0.5)) isVisibleGIC = false;
+                     // date.ut is noon. +0.5 is midnight next day?
+                     // Wait, MakeTime(Date) -> if Date is "YYYY-MM-DDT12:00:00Z", then date.ut is that time.
+                     // The condition seems to check if sunset is later than midnight of that day?
+                     // I will copy the logic from map.
+
+                     let isVisibleGIC = true;
+                     if (isGIC) {
+                         // Original logic: if (sunsetUT >= (date.ut + 0.5)) isVisibleGIC = false;
+                         // date was created from noon. +0.5 is midnight.
+                         if (sunsetUT >= (date.ut + 0.5)) isVisibleGIC = false;
+                     }
+
+                     if (isVisibleGIC) {
+                         if (moonHor.altitude >= minAlt) {
+                             if (elongation >= minElong) {
+                                 visible = true;
+                             }
+                         }
+                     }
+
+                     if (visible) {
+                         visibleStatus = this.string('visible');
+                         color = 'var(--success)';
+                         bg = 'var(--on-success)';
+                     }
+
+                    const displayData = [
+                        { label: 'visibilityStatus', value: visibleStatus, color: color, bg: bg },
+                        { label: 'sunsetTime', value: fmt(sunset) },
+                        { label: 'moonsetTime', value: fmt(moonset) },
+                        { label: 'moonAlt', value: moonHor.altitude.toFixed(2) + '°' },
+                        { label: 'moonElong', value: elongation.toFixed(2) + '°' },
+                        { label: 'moonAzimuth', value: moonHor.azimuth.toFixed(2) + '°' },
+                        { label: 'moonAge', value: ageInDays.toFixed(2) + ' days' },
+                        { label: 'illuminatedFraction', value: (moonPhase.phase_fraction * 100).toFixed(2) + '%' }
+                    ];
+
+                    let html = '';
+                    displayData.forEach(item => {
+                         const style = item.color ? `color: ${item.color};` : '';
+                         const label = this.string(item.label) || item.label;
+                         html += `<div class="result-card">
+                                    <div class="result-label">${label}</div>
+                                    <div class="result-value" style="${style}">${item.value}</div>
+                                  </div>`;
+                    });
+
+                    elements.results.innerHTML = html;
                 }
 
                 handleRegionChange() {
