@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MABBIMS Hijri Calendar</title>
+    <style>
+        :root {
+            --primary: #005dac;
+            --on-primary: #ffffff;
+            --hover: #00539a;
+            --background: #f9f9ff;
+            --surface: #ffffff;
+            --text: #181c21;
+            --border: #c1c6d4;
+            --muted: #f2f3fc;
+            --success: #0b6b1d;
+            --on-success: #ffffff;
+            --danger: #ba1a1a;
+            --on-danger: #ffffff;
+            --highlight-bg: #d4e3ff;
+            --formula-bg: #f8f9fa;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not(.light) {
+                --primary: #a5c8ff;
+                --on-primary: #00315f;
+                --hover: #72adff;
+                --background: #101319;
+                --surface: #0b0e14;
+                --text: #e0e2ea;
+                --border: #414752;
+                --muted: #181c21;
+                --success: #82db7e;
+                --on-success: #00390a;
+                --danger: #ffb4ab;
+                --on-danger: #93000a;
+                --highlight-bg: #001c3a;
+                --formula-bg: #1e222b;
+            }
+        }
+
+        :root.dark {
+            --primary: #a5c8ff;
+            --on-primary: #00315f;
+            --hover: #72adff;
+            --background: #101319;
+            --surface: #0b0e14;
+            --text: #e0e2ea;
+            --border: #414752;
+            --muted: #181c21;
+            --success: #82db7e;
+            --on-success: #00390a;
+            --danger: #ffb4ab;
+            --on-danger: #93000a;
+            --highlight-bg: #001c3a;
+            --formula-bg: #1e222b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline-offset: 2px;
+        }
+        *:focus-visible {
+            outline: 2px solid var(--primary);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            max-width: 960px;
+            width: 100%;
+            padding: 2rem;
+            position: relative;
+            margin: 2rem 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        h1, h2, h3, label { margin: .5rem 0; }
+        label { display: block; font-weight: 700; margin-bottom: 0.25rem; font-size: 0.9rem; }
+
+        input, select, button {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text);
+            font-size: 1rem;
+            padding: .5rem;
+            width: 100%;
+        }
+
+        button { cursor: pointer; font-weight: 500; transition: background 0.2s; }
+        button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .primary { background: var(--primary); color: var(--on-primary); border: 0; }
+        .primary:hover:not(:disabled) { background: var(--hover); }
+
+        .secondary { background: transparent; border: 1px solid var(--border); }
+        .secondary:hover:not(:disabled) { background: var(--muted); }
+
+        .selectors {
+            position: absolute;
+            right: 2rem;
+            top: 1rem;
+            display: flex;
+            gap: 8px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .day-header {
+            background: var(--muted);
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .day-cell {
+            background: var(--surface);
+            min-height: 100px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .day-cell.other-month { opacity: 0.5; background: var(--formula-bg); }
+        .day-cell.today { background: var(--highlight-bg); }
+
+        .gregorian-date { font-size: 1.2rem; font-weight: 700; }
+        .hijri-date { font-size: 0.9rem; color: var(--primary); text-align: right; font-weight: 600; }
+        .hijri-month-name { font-size: 0.75rem; opacity: 0.8; text-align: right; }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+            background: var(--formula-bg);
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+        .row > * { flex: 1; }
+
+        /* Dialog Styles */
+        dialog {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            max-width: 500px;
+            width: 100%;
+            margin: auto;
+            position: fixed;
+        }
+        dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
+
+        .dialog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .close-button {
+            background: transparent;
+            color: var(--text);
+            border: none;
+            font-size: 1.5rem;
+            width: auto;
+            padding: 0 0.5rem;
+        }
+
+        .info-text {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        @media(max-width: 600px) {
+            .selectors { position: static; justify-content: flex-end; margin-bottom: 1rem; }
+            .calendar-header { flex-direction: column; align-items: stretch; }
+            .day-cell { min-height: 70px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="selectors">
+        <button id="prefBtn" class="secondary" style="width:auto; padding: 6px 12px;">Settings</button>
+    </div>
+
+    <h1 id="appTitle">MABBIMS Hijri Calendar</h1>
+    <p id="appSubtitle" style="opacity: 0.7; margin-bottom: 2rem;">
+        6°04′30″ N 95°06′45″ E (UTC+7)
+    </p>
+
+    <div class="controls">
+        <div class="control-group">
+            <h3 id="gotoTitle">Go to Date</h3>
+            <div class="row">
+                <input type="date" id="gDateInput">
+                <button id="goBtn" class="primary">Go</button>
+            </div>
+            <div class="row" style="margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px;">
+                <input type="number" id="hDayInput" placeholder="D" min="1" max="30" style="flex: 0.6;">
+                <select id="hMonthInput" style="flex: 2;"></select>
+                <input type="number" id="hYearInput" placeholder="Year" min="1300" max="2500" style="flex: 1;">
+            </div>
+            <button id="goHBtn" class="secondary" style="margin-top: 5px;">Go to Hijri</button>
+        </div>
+
+        <div class="control-group">
+            <h3 id="formulaTitle">Heuristic Formula</h3>
+            <p style="font-family: monospace; font-size: 0.9rem; background: var(--surface); padding: 5px; border: 1px solid var(--border); border-radius: 4px;">
+                JD = floor( (11H + 3) / 30 ) + 354H + 2270158
+            </p>
+            <p id="formulaDesc" style="font-size: 0.8rem; margin-top: 5px; opacity: 0.8;">
+                Optimized Tabular (Type II) algorithm.
+            </p>
+        </div>
+    </div>
+
+    <div class="calendar-header">
+        <button id="prevMonthBtn" class="secondary" style="width: auto;">&larr; Prev</button>
+        <h2 id="monthDisplay">January 2026</h2>
+        <button id="nextMonthBtn" class="secondary" style="width: auto;">Next &rarr;</button>
+    </div>
+
+    <div class="calendar-grid" id="calendar">
+        <!-- JS will populate -->
+    </div>
+
+    <p class="info-text" id="footerNote">
+        * Dates start at sunset. MABBIMS Criteria: Alt ≥ 3°, Elong ≥ 6.4°.
+    </p>
+</div>
+
+<dialog id="prefDialog">
+    <div class="dialog-header">
+        <h2 id="prefTitle">Preferences</h2>
+        <button id="closePref" class="close-button">&times;</button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <div>
+            <label for="language">Language</label>
+            <select id="language">
+                <option value="en">English</option>
+                <option value="id">Bahasa Indonesia</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="theme">Theme</label>
+            <select id="theme">
+                <option value="auto">Auto</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+            </select>
+        </div>
+
+        <div>
+            <label id="weekStartLabel">Week starts on</label>
+            <select id="weekStart">
+                <option value="0">Sunday</option>
+                <option value="1">Monday</option>
+                <option value="6">Saturday</option>
+            </select>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem;">
+            <label>Location</label>
+            <div class="row">
+                <div style="flex:1">
+                    <label style="font-weight:normal; font-size:0.8em">Lat</label>
+                    <input type="number" id="latInput" step="0.0001">
+                </div>
+                <div style="flex:1">
+                    <label style="font-weight:normal; font-size:0.8em">Lon</label>
+                    <input type="number" id="lonInput" step="0.0001">
+                </div>
+            </div>
+            <button id="myLocBtn" class="secondary">Use My Location</button>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem;">
+            <label id="adjLabel">Hijri Adjustment (Days)</label>
+            <input type="number" id="hijriAdj" value="0" min="-2" max="2">
+            <small style="opacity: 0.6;">Shifts the Tabular formula.</small>
+        </div>
+
+        <button id="savePrefBtn" class="primary" style="margin-top: 1rem;">Save & Close</button>
+    </div>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
+<script>
+    const text = {
+        en: {
+            appTitle: 'MABBIMS Hijri Calendar',
+            gotoTitle: 'Go to Date',
+            formulaTitle: 'Heuristic Formula',
+            formulaDesc: 'Optimized Tabular (Type II) algorithm.',
+            prefTitle: 'Preferences',
+            weekStartLabel: 'Week starts on',
+            adjLabel: 'Hijri Adjustment (Days)',
+            save: 'Save & Close',
+            myLoc: 'Use My Location',
+            go: 'Go',
+            goH: 'Go to Hijri',
+            months: ["Muharram", "Safar", "Rabi' al-awwal", "Rabi' al-thani", "Jumada al-awwal", "Jumada al-thani", "Rajab", "Sha'ban", "Ramadan", "Shawwal", "Dhu al-Qi'dah", "Dhu al-Hijjah"],
+            days: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+            footer: '* Dates start at sunset. MABBIMS Criteria: Alt ≥ 3°, Elong ≥ 6.4°.'
+        },
+        id: {
+            appTitle: 'Kalender Hijriyah MABBIMS',
+            gotoTitle: 'Ke Tanggal',
+            formulaTitle: 'Rumus Heuristik',
+            formulaDesc: 'Algoritma Tabular (Tipe II) yang dioptimalkan.',
+            prefTitle: 'Pengaturan',
+            weekStartLabel: 'Awal pekan',
+            adjLabel: 'Penyesuaian Hijriyah (Hari)',
+            save: 'Simpan & Tutup',
+            myLoc: 'Gunakan Lokasi Saya',
+            go: 'Buka',
+            goH: 'Buka Hijriyah',
+            months: ["Muharram", "Safar", "Rabiul Awal", "Rabiul Akhir", "Jumadil Awal", "Jumadil Akhir", "Rajab", "Syaban", "Ramadhan", "Syawal", "Dzulkaidah", "Dzulhijjah"],
+            days: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+            footer: '* Tanggal dimulai saat maghrib. Kriteria MABBIMS: Alt ≥ 3°, Elong ≥ 6.4°.'
+        }
+    };
+
+    const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
+
+    // Default State
+    const state = {
+        lat: 6.075, // Aceh
+        lon: 95.1125,
+        viewDate: new Date(),
+        lang: 'en',
+        theme: 'auto',
+        weekStart: 0, // Sunday
+        hijriAdj: 0
+    };
+
+    class HijriCalc {
+        constructor() {
+            this.setup();
+            this.updateLanguage('en');
+            this.render();
+        }
+
+        setup() {
+            // Init inputs
+            elements.latInput.value = state.lat;
+            elements.lonInput.value = state.lon;
+            elements.gDateInput.valueAsDate = new Date();
+
+            // Populate Hijri Month Select
+            text.en.months.forEach((m, i) => {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = m;
+                elements.hMonthInput.appendChild(opt);
+            });
+
+            // Init Hijri Inputs with approximate date
+            const h = this.gregorianToHijri(new Date());
+            elements.hDayInput.value = h.day;
+            elements.hMonthInput.value = h.month;
+            elements.hYearInput.value = h.year;
+
+            // Events
+            elements.prefBtn.onclick = () => elements.prefDialog.showModal();
+            elements.closePref.onclick = () => elements.prefDialog.close();
+            elements.savePrefBtn.onclick = () => {
+                this.savePreferences();
+                elements.prefDialog.close();
+            };
+
+            elements.myLocBtn.onclick = () => this.getLocation();
+
+            elements.prevMonthBtn.onclick = () => {
+                state.viewDate.setMonth(state.viewDate.getMonth() - 1);
+                this.render();
+            };
+            elements.nextMonthBtn.onclick = () => {
+                state.viewDate.setMonth(state.viewDate.getMonth() + 1);
+                this.render();
+            };
+
+            elements.goBtn.onclick = () => {
+                const d = elements.gDateInput.valueAsDate;
+                if(d) {
+                    state.viewDate = d;
+
+                    // Sync Hijri inputs
+                    const h = this.gregorianToHijri(d);
+                    elements.hDayInput.value = h.day;
+                    elements.hMonthInput.value = h.month;
+                    elements.hYearInput.value = h.year;
+
+                    this.render();
+                }
+            };
+
+            elements.goHBtn.onclick = () => {
+                const d = parseInt(elements.hDayInput.value);
+                const m = parseInt(elements.hMonthInput.value);
+                const y = parseInt(elements.hYearInput.value);
+                if(d && !isNaN(m) && y) {
+                    const gDate = this.hijriToGregorian(y, m, d);
+                    state.viewDate = gDate;
+                    this.render();
+                    elements.gDateInput.valueAsDate = gDate;
+                }
+            };
+        }
+
+        getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    elements.latInput.value = pos.coords.latitude.toFixed(4);
+                    elements.lonInput.value = pos.coords.longitude.toFixed(4);
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        savePreferences() {
+            state.lat = parseFloat(elements.latInput.value);
+            state.lon = parseFloat(elements.lonInput.value);
+            state.lang = elements.language.value;
+            state.weekStart = parseInt(elements.weekStart.value);
+            state.hijriAdj = parseInt(elements.hijriAdj.value);
+
+            const theme = elements.theme.value;
+            state.theme = theme;
+            document.documentElement.className = theme === 'auto' ? '' : theme;
+
+            this.updateLanguage(state.lang);
+            this.render();
+        }
+
+        updateLanguage(lang) {
+            const t = text[lang];
+            elements.appTitle.textContent = t.appTitle;
+            elements.appSubtitle.textContent = `${state.lat}° N, ${state.lon}° E (UTC+7)`; // Simplified display
+            elements.gotoTitle.textContent = t.gotoTitle;
+            elements.formulaTitle.textContent = t.formulaTitle;
+            elements.formulaDesc.textContent = t.formulaDesc;
+            elements.prefTitle.textContent = t.prefTitle;
+            elements.weekStartLabel.textContent = t.weekStartLabel;
+            elements.adjLabel.textContent = t.adjLabel;
+            elements.savePrefBtn.textContent = t.save;
+            elements.myLocBtn.textContent = t.myLoc;
+            elements.goBtn.textContent = t.go;
+            elements.goHBtn.textContent = t.goH;
+            elements.footerNote.textContent = t.footer;
+            elements.prefBtn.textContent = 'Settings'; // Or localized
+
+            // Update Hijri Month Select Options
+            [...elements.hMonthInput.options].forEach((opt, i) => {
+                opt.textContent = t.months[i];
+            });
+        }
+
+        // --- Logic ---
+
+        // Tabular -> Gregorian (for navigation)
+        hijriToGregorian(hYear, hMonth, hDay) {
+            const iyear = 10631.0 / 30.0;
+            const epochastro = 1948439.5 + state.hijriAdj;
+            const shift1 = 8.01 / 60.0;
+
+            let hYear0 = hYear - 1;
+            let cyc = Math.floor(hYear0 / 30);
+            let j = hYear0 % 30;
+
+            let im = hMonth + 1;
+            let z_rem = hDay + Math.floor(29.5001 * im - 29);
+            let z_cycle = z_rem + Math.floor(j * iyear + shift1);
+            let z_total = z_cycle + cyc * 10631.0;
+            let jd = z_total + epochastro - 1;
+
+            // JD to Date
+            let z = Math.floor(jd + 0.5);
+            let f = jd + 0.5 - z;
+            let alpha = Math.floor((z - 1867216.25) / 36524.25);
+            let a = z + 1 + alpha - Math.floor(alpha / 4);
+            let b = a + 1524;
+            let c = Math.floor((b - 122.1) / 365.25);
+            let d = Math.floor(365.25 * c);
+            let e = Math.floor((b - d) / 30.6001);
+            let day = b - d - Math.floor(30.6001 * e) + f;
+            let month = e - 1;
+            if (month > 12) month -= 12;
+            let year = c - 4715;
+            if (e < 14) month = e - 1; else month = e - 13;
+            if (month > 2) year = c - 4716; else year = c - 4715;
+
+            return new Date(year, month - 1, Math.floor(day));
+        }
+
+        // Gregorian -> Tabular (for init inputs)
+        gregorianToHijri(date) {
+             let day = date.getDate();
+            let month = date.getMonth();
+            let year = date.getFullYear();
+            let m = month + 1;
+            let y = year;
+            if (m < 3) { y -= 1; m += 12; }
+
+            let a = Math.floor(y / 100);
+            let b = 2 - a + Math.floor(a / 4);
+            if (y < 1583) b = 0;
+            if (y === 1582) {
+                if (m > 10) b = -10;
+                if (m === 10) { b = 0; if (day > 4) b = -10; }
+            }
+
+            let jd = Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + day + b - 1524;
+
+            // Tabular Reverse
+            let iyear = 10631.0 / 30.0;
+            let epochastro = 1948439.5 + state.hijriAdj;
+            let shift1 = 8.01 / 60.0;
+
+            let z = jd - epochastro;
+            let cyc = Math.floor(z / 10631.0);
+            z = z - 10631.0 * cyc;
+            let j = Math.floor((z - shift1) / iyear);
+            let iy = 30 * cyc + j;
+            z = z - Math.floor(j * iyear + shift1);
+            let im = Math.floor((z + 28.5001) / 29.5);
+            if (im === 13) im = 12;
+            let id = z - Math.floor(29.5001 * im - 29);
+
+            return { day: Math.floor(id), month: im - 1, year: iy + 1 };
+        }
+
+        // MABBIMS Calculation
+        checkVisibility(dateObj) {
+            // Hardcoded UTC+7 for simplicity of "Civil Day" logic,
+            // but we use actual Observer coords for Physics.
+            const UTC_OFFSET = 7;
+            const baseUTC = new Date(dateObj);
+            baseUTC.setHours(12 - UTC_OFFSET);
+
+            const date = Astronomy.MakeTime(baseUTC);
+            const observer = new Astronomy.Observer(state.lat, state.lon, 0);
+
+            const sunset = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, -1, date.ut, 1);
+            if (!sunset) return false;
+
+            const sunsetUT = sunset.ut;
+            const moonEq = Astronomy.Equator(Astronomy.Body.Moon, sunsetUT, observer, true, true);
+            const moonHor = Astronomy.Horizon(sunsetUT, observer, moonEq.ra, moonEq.dec, "normal");
+            const sunEq = Astronomy.Equator(Astronomy.Body.Sun, sunsetUT, observer, true, true);
+            const elongation = Astronomy.AngleBetween(sunEq.vec, moonEq.vec);
+
+            const searchCenter = Astronomy.MakeTime(dateObj);
+            let bestNM = Astronomy.SearchMoonPhase(0, searchCenter.ut, -35);
+            if (!bestNM) return false;
+
+            const age = sunsetUT - bestNM.ut;
+            if (age < 0) return false;
+
+            const alt = moonHor.altitude;
+            return (alt >= 3.0 && elongation >= 6.4);
+        }
+
+        getAccurateHijriMonthStart(hYear, hMonth) {
+            const cacheKey = `${hYear}-${hMonth}-${state.lat}-${state.lon}`;
+            if (this.cache && this.cache[cacheKey]) return this.cache[cacheKey];
+            if (!this.cache) this.cache = {};
+
+            const daysSinceAnchor = ((hYear - 1445) * 354.367) + (hMonth * 29.53);
+            const anchorDate = new Date("2023-07-19T12:00:00Z");
+            const approxDate = new Date(anchorDate.getTime() + daysSinceAnchor * 86400000);
+
+            const searchCenter = Astronomy.MakeTime(approxDate);
+            let bestNM = Astronomy.SearchMoonPhase(0, searchCenter.ut, -30);
+
+            if (!bestNM) return { gDate: approxDate };
+
+            const nmDate = bestNM.date;
+            // Shift to local civil time (UTC+7 assumption for simplicity or derive from lon?)
+            // Using fixed UTC+7 as per request "WIB" context implied by Aceh/Jakarta.
+            const UTC_OFFSET = 7;
+            nmDate.setMinutes(nmDate.getMinutes() + UTC_OFFSET * 60);
+
+            let checkDate = new Date(nmDate.getFullYear(), nmDate.getMonth(), nmDate.getDate());
+            let isVisible = this.checkVisibility(checkDate);
+
+            const startDate = new Date(checkDate);
+            startDate.setDate(checkDate.getDate() + (isVisible ? 1 : 2));
+
+            const result = { gDate: startDate };
+            this.cache[cacheKey] = result;
+            return result;
+        }
+
+        render() {
+            const grid = elements.calendar;
+            const year = state.viewDate.getFullYear();
+            const month = state.viewDate.getMonth();
+
+            const langCode = state.lang === 'id' ? 'id-ID' : 'en-US';
+            elements.monthDisplay.textContent = state.viewDate.toLocaleDateString(langCode, { month: 'long', year: 'numeric' });
+
+            const firstDayOfMonth = new Date(year, month, 1);
+            let dayOfWeek = firstDayOfMonth.getDay();
+
+            // Adjust for week start
+            // 0=Sun, 1=Mon.
+            // If WeekStart=1 (Mon) and Day=0 (Sun), offset should be 6.
+            // If WeekStart=1 (Mon) and Day=1 (Mon), offset should be 0.
+            let offset = dayOfWeek - state.weekStart;
+            if (offset < 0) offset += 7;
+
+            const gridStartDate = new Date(year, month, 1 - offset);
+
+            // Generate Headers
+            grid.innerHTML = '';
+            const t = text[state.lang];
+            for(let i=0; i<7; i++) {
+                let dIndex = (state.weekStart + i) % 7;
+                const el = document.createElement('div');
+                el.className = 'day-header';
+                el.textContent = t.days[dIndex];
+                grid.appendChild(el);
+            }
+
+            // Determine Hijri Context
+            const startKw = this.gregorianToHijri(gridStartDate);
+            let hMonthIdx = startKw.month;
+            let hYear = startKw.year;
+
+            const hStarts = [];
+            for(let i = -1; i <= 2; i++) {
+                let m = hMonthIdx + i;
+                let y = hYear;
+                while(m > 11) { m -= 12; y++; }
+                while(m < 0) { m += 12; y--; }
+
+                const st = this.getAccurateHijriMonthStart(y, m);
+                hStarts.push({ y: y, m: m, gDate: st.gDate });
+            }
+            hStarts.sort((a,b) => a.gDate - b.gDate);
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(gridStartDate);
+                date.setDate(gridStartDate.getDate() + i);
+
+                let hDateDisplay = "";
+                let hMonthNameDisplay = "";
+
+                for (let k = 0; k < hStarts.length - 1; k++) {
+                    const s1 = hStarts[k];
+                    const s2 = hStarts[k+1];
+
+                    if (date >= s1.gDate && date < s2.gDate) {
+                        const d1 = new Date(date).setHours(0,0,0,0);
+                        const d2 = new Date(s1.gDate).setHours(0,0,0,0);
+                        const dayNum = Math.round((d1 - d2) / 86400000) + 1;
+
+                        hDateDisplay = dayNum;
+                        hMonthNameDisplay = t.months[s1.m];
+                        break;
+                    }
+                }
+
+                const el = document.createElement('div');
+                el.className = 'day-cell';
+                if (date.getMonth() !== month) el.classList.add('other-month');
+                if (date.getTime() === today.getTime()) el.classList.add('today');
+
+                el.innerHTML = `
+                    <div class="gregorian-date">${date.getDate()}</div>
+                    <div>
+                        <div class="hijri-date">${hDateDisplay}</div>
+                        <div class="hijri-month-name">${hMonthNameDisplay}</div>
+                    </div>
+                `;
+                grid.appendChild(el);
+            }
+        }
+    }
+
+    new HijriCalc();
+</script>
+</body>
+</html>
