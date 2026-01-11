@@ -390,9 +390,26 @@
 
     class HijriCalc {
         constructor() {
+            this.isOffline = (typeof Astronomy === 'undefined');
             this.setup();
             this.updateLanguage('en');
             this.render();
+
+            if (this.isOffline) {
+                console.warn("Astronomy Engine not loaded. Falling back to Tabular method.");
+                const warning = document.createElement('div');
+                warning.style.color = 'var(--danger)';
+                warning.style.textAlign = 'center';
+                warning.style.fontWeight = '400';
+                warning.style.marginBottom = '1rem';
+                warning.textContent = 'Offline Mode: Using approximate Tabular algorithm';
+
+                // Insert inside container for better layout
+                const container = document.querySelector('.container');
+                if (container) {
+                    container.insertBefore(warning, container.firstChild);
+                }
+            }
         }
 
         setup() {
@@ -492,6 +509,9 @@
             const t = text[lang];
             elements.appTitle.textContent = t.appTitle;
             elements.appSubtitle.textContent = `${state.lat}° N, ${state.lon}° E (UTC+7)`; // Simplified display
+            if (this.isOffline) {
+                elements.appSubtitle.textContent += " (Offline/Heuristic)";
+            }
             elements.gotoTitle.textContent = t.gotoTitle;
             elements.formulaTitle.textContent = t.formulaTitle;
             elements.formulaDesc.textContent = t.formulaDesc;
@@ -617,6 +637,10 @@
         }
 
         getAccurateHijriMonthStart(hYear, hMonth) {
+            if (this.isOffline) {
+                return { gDate: this.hijriToGregorian(hYear, hMonth, 1) };
+            }
+
             const cacheKey = `${hYear}-${hMonth}-${state.lat}-${state.lon}`;
             if (this.cache && this.cache[cacheKey]) return this.cache[cacheKey];
             if (!this.cache) this.cache = {};
