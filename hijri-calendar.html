@@ -252,6 +252,17 @@
             <input type="date" id="gDateInput">
             <span>&rarr; <span id="hDateResult" style="font-weight:bold; color:var(--primary);"></span></span>
         </div>
+
+        <div class="calc-row" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px dashed var(--border);">
+            <label id="hDateLabel">Hijri Date: </label>
+            <input type="number" id="hDayInput" min="1" max="30" placeholder="Day" style="width: 50px;">
+            <select id="hMonthInput">
+                <!-- Populated by JS -->
+            </select>
+            <input type="number" id="hYearInput" min="1300" max="2500" placeholder="Year" style="width: 70px;">
+            <span>&rarr; <span id="gDateResult" style="font-weight:bold; color:var(--primary);"></span></span>
+        </div>
+
         <p style="font-size: 0.9em; color: var(--text); opacity: 0.7; text-align: center; margin-top: 10px;">
             * <span id="heuristicNote">This is an arithmetic approximation and may differ from the astronomical calculation below by 1-2 days.</span>
         </p>
@@ -285,6 +296,7 @@
             heuristicTitle: 'Heuristic Formula (Gregorian to Hijri)',
             heuristicDesc: 'Using the Tabular Islamic Calendar (Kuwaiti Algorithm) for approximate conversion.',
             gDateLabel: 'Gregorian Date',
+            hDateLabel: 'Hijri Date',
             heuristicNote: 'This is an arithmetic approximation and may differ from the astronomical calculation below by 1-2 days.',
             calendarTitle: 'Full Calculation Calendar',
             calendarNote: 'Hijri dates are determined by simulating moon sighting (MABBIMS) at the specified coordinates for each month start. Dates change at sunset, but are mapped here to the following civil day.',
@@ -303,6 +315,7 @@
             heuristicTitle: 'Rumus Heuristik (Masehi ke Hijriyah)',
             heuristicDesc: 'Menggunakan Kalender Islam Tabular (Algoritma Kuwait) untuk konversi perkiraan.',
             gDateLabel: 'Tanggal Masehi',
+            hDateLabel: 'Tanggal Hijriyah',
             heuristicNote: 'Ini adalah perkiraan aritmatika dan mungkin berbeda 1-2 hari dari perhitungan astronomis di bawah.',
             calendarTitle: 'Kalender Perhitungan Penuh',
             calendarNote: 'Tanggal Hijriyah ditentukan dengan simulasi rukyatul hilal (MABBIMS) di koordinat yang ditentukan untuk setiap awal bulan. Tanggal berganti saat matahari terbenam, tetapi dipetakan di sini ke hari sipil berikutnya.',
@@ -345,6 +358,28 @@
             elements.gDateInput.valueAsDate = new Date();
             elements.gDateInput.onchange = () => this.updateHeuristic();
 
+            // Inverse Heuristic
+            // Populate Month Select
+            text.en.months.forEach((m, i) => {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = m; // Will be localized later
+                elements.hMonthInput.appendChild(opt);
+            });
+
+            // Set defaults (approx today)
+            const todayH = this.kuwaitiCalendar(new Date());
+            elements.hDayInput.value = todayH.day;
+            elements.hMonthInput.value = todayH.month;
+            elements.hYearInput.value = todayH.year;
+
+            elements.hDayInput.onchange = () => this.updateInverseHeuristic();
+            elements.hMonthInput.onchange = () => this.updateInverseHeuristic();
+            elements.hYearInput.onchange = () => this.updateInverseHeuristic();
+
+            // Initial inverse update
+            this.updateInverseHeuristic();
+
             // Calendar
             this.currentViewDate = new Date();
             elements.prevBtn.onclick = () => {
@@ -375,6 +410,7 @@
             elements.heuristicTitle.textContent = t.heuristicTitle;
             elements.heuristicDesc.textContent = t.heuristicDesc;
             elements.gDateLabel.textContent = t.gDateLabel;
+            elements.hDateLabel.textContent = t.hDateLabel; // New
             elements.heuristicNote.textContent = t.heuristicNote;
             elements.calendarTitle.textContent = t.calendarTitle;
             elements.calendarNote.textContent = t.calendarNote;
@@ -389,8 +425,14 @@
                 if(text[lang][opt.value + 'Theme']) opt.textContent = text[lang][opt.value + 'Theme'];
             });
 
+            // Update Month Options in Inverse Calc
+            [...elements.hMonthInput.options].forEach((opt, i) => {
+                opt.textContent = t.months[i];
+            });
+
             // Re-render components dependent on language
             this.updateHeuristic();
+            this.updateInverseHeuristic();
             this.renderCalendar();
         }
 
@@ -469,6 +511,61 @@
                 month: im - 1, // 0-indexed
                 year: iy
             };
+        }
+
+        hijriToGregorian(hYear, hMonth, hDay) {
+            // hMonth is 0-indexed input
+            const iyear = 10631.0 / 30.0;
+            const epochastro = 1948084;
+            const shift1 = 8.01 / 60.0;
+
+            let cyc = Math.floor(hYear / 30);
+            let j = hYear % 30;
+
+            let im = hMonth + 1;
+            let z_rem = hDay + Math.floor(29.5001 * im - 29);
+            let z_cycle = z_rem + Math.floor(j * iyear + shift1);
+            let z_total = z_cycle + cyc * 10631.0;
+            let jd = z_total + epochastro;
+
+            return this.jdToGregorian(Math.floor(jd));
+        }
+
+        jdToGregorian(jd) {
+            let z = Math.floor(jd + 0.5);
+            let f = jd + 0.5 - z;
+            let alpha = Math.floor((z - 1867216.25) / 36524.25);
+            let a = z + 1 + alpha - Math.floor(alpha / 4);
+            let b = a + 1524;
+            let c = Math.floor((b - 122.1) / 365.25);
+            let d = Math.floor(365.25 * c);
+            let e = Math.floor((b - d) / 30.6001);
+            let day = b - d - Math.floor(30.6001 * e) + f;
+            let month = e - 1;
+            if (month > 12) month -= 12;
+            let year = c - 4715;
+
+            if (e < 14) month = e - 1;
+            else month = e - 13;
+
+            if (month > 2) year = c - 4716;
+            else year = c - 4715;
+
+            return new Date(year, month - 1, Math.floor(day));
+        }
+
+        updateInverseHeuristic() {
+            const hDay = parseInt(elements.hDayInput.value);
+            const hMonth = parseInt(elements.hMonthInput.value);
+            const hYear = parseInt(elements.hYearInput.value);
+
+            if (isNaN(hDay) || isNaN(hMonth) || isNaN(hYear)) return;
+
+            const gDate = this.hijriToGregorian(hYear, hMonth, hDay);
+            const langCode = this.lang === 'id' ? 'id-ID' : 'en-US';
+
+            // Format: 11 January 2026
+            elements.gDateResult.textContent = gDate.toLocaleDateString(langCode, { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
         // --- MABBIMS Logic ---
