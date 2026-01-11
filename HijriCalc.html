@@ -515,9 +515,7 @@
         updateLanguage(lang) {
             const t = text[lang];
             elements.appTitle.textContent = t.appTitle;
-            const tz = this.getTimezoneOffset();
-            const tzStr = tz >= 0 ? `+${tz}` : `${tz}`;
-            elements.appSubtitle.textContent = `${state.lat}° N, ${state.lon}° E (UTC${tzStr})`; // Simplified display
+            elements.appSubtitle.textContent = `${state.lat}° N, ${state.lon}° E`; // Simplified display
             if (this.isOffline) {
                 elements.appSubtitle.textContent += " (Offline/Heuristic)";
             }
