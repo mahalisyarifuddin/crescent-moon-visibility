@@ -412,7 +412,7 @@
 			};
 			const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
 
-			class VisibilityMap {
+			class HilalMap {
 				constructor() {
 					this.setup();
 					this.theme("auto");
@@ -846,7 +846,7 @@
 				}
 			}
 
-			new VisibilityMap();
+			new HilalMap();
 		</script>
 	</body>
 </html>
