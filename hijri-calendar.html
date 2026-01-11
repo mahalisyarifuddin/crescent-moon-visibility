@@ -438,6 +438,13 @@
                 const d = elements.gDateInput.valueAsDate;
                 if(d) {
                     state.viewDate = d;
+
+                    // Sync Hijri inputs
+                    const h = this.gregorianToHijri(d);
+                    elements.hDayInput.value = h.day;
+                    elements.hMonthInput.value = h.month;
+                    elements.hYearInput.value = h.year;
+
                     this.render();
                 }
             };
@@ -512,8 +519,9 @@
             const epochastro = 1948439.5 + state.hijriAdj;
             const shift1 = 8.01 / 60.0;
 
-            let cyc = Math.floor(hYear / 30);
-            let j = hYear % 30;
+            let hYear0 = hYear - 1;
+            let cyc = Math.floor(hYear0 / 30);
+            let j = hYear0 % 30;
 
             let im = hMonth + 1;
             let z_rem = hDay + Math.floor(29.5001 * im - 29);
@@ -574,7 +582,7 @@
             if (im === 13) im = 12;
             let id = z - Math.floor(29.5001 * im - 29);
 
-            return { day: Math.floor(id), month: im - 1, year: iy };
+            return { day: Math.floor(id), month: im - 1, year: iy + 1 };
         }
 
         // MABBIMS Calculation
