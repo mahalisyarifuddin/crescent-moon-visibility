@@ -397,20 +397,17 @@
 
             if (this.isOffline) {
                 console.warn("Astronomy Engine not loaded. Falling back to Tabular method.");
-                const banner = document.createElement('div');
-                banner.style.background = 'var(--danger)';
-                banner.style.color = 'var(--on-danger)';
-                banner.style.padding = '0.75rem';
-                banner.style.textAlign = 'center';
-                banner.style.fontWeight = 'bold';
-                banner.style.borderRadius = '4px';
-                banner.style.marginBottom = '1rem';
-                banner.textContent = 'Offline Mode: Using approximate Tabular algorithm';
+                const warning = document.createElement('div');
+                warning.style.color = 'var(--danger)';
+                warning.style.textAlign = 'center';
+                warning.style.fontWeight = 'bold';
+                warning.style.marginBottom = '1rem';
+                warning.textContent = 'Offline Mode: Using approximate Tabular algorithm';
 
                 // Insert inside container for better layout
                 const container = document.querySelector('.container');
                 if (container) {
-                    container.insertBefore(banner, container.firstChild);
+                    container.insertBefore(warning, container.firstChild);
                 }
             }
         }
