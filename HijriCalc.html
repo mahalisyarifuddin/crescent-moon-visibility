@@ -609,12 +609,10 @@
             };
 
             elements.prevMonthBtn.onclick = () => {
-                state.viewDate.setMonth(state.viewDate.getMonth() - 1);
-                this.render();
+                this.navigateMonth(-1);
             };
             elements.nextMonthBtn.onclick = () => {
-                state.viewDate.setMonth(state.viewDate.getMonth() + 1);
-                this.render();
+                this.navigateMonth(1);
             };
 
             elements.goBtn.onclick = () => {
@@ -637,6 +635,26 @@
                     elements.gDateInput.valueAsDate = gDate;
                 }
             };
+        }
+
+        navigateMonth(delta) {
+             if (state.primaryCalendar === 'hijri') {
+                 // Move by Hijri Month
+                 const h = this.gregorianToHijri(state.viewDate);
+                 let newM = h.month + delta;
+                 let newY = h.year;
+                 while(newM > 11) { newM -= 12; newY++; }
+                 while(newM < 0) { newM += 12; newY--; }
+
+                 // Jump to start of that month to ensure we are in it
+                 const start = this.getAccurateHijriMonthStart(newY, newM);
+                 // Add 15 days to be in the middle of the month for stability
+                 state.viewDate = new Date(start.gDate.getTime() + 15 * 86400000);
+             } else {
+                 // Gregorian
+                 state.viewDate.setMonth(state.viewDate.getMonth() + delta);
+             }
+             this.render();
         }
 
         updateHijriInputs(date) {
@@ -828,6 +846,7 @@
 
         render() {
             const grid = elements.calendar;
+            const t = text[state.lang];
 
             // Toggle Primary Class
             if (state.primaryCalendar === 'hijri') {
@@ -836,24 +855,55 @@
                 grid.classList.remove('hijri-primary');
             }
 
-            const year = state.viewDate.getFullYear();
-            const month = state.viewDate.getMonth();
+            // --- Gregorian Mode Logic ---
+            if (state.primaryCalendar !== 'hijri') {
+                const year = state.viewDate.getFullYear();
+                const month = state.viewDate.getMonth();
+                const langCode = state.lang === 'id' ? 'id-ID' : 'en-US';
+                elements.monthDisplay.textContent = state.viewDate.toLocaleDateString(langCode, { month: 'long', year: 'numeric' });
 
-            const langCode = state.lang === 'id' ? 'id-ID' : 'en-US';
-            elements.monthDisplay.textContent = state.viewDate.toLocaleDateString(langCode, { month: 'long', year: 'numeric' });
+                const firstDayOfMonth = new Date(year, month, 1);
+                let dayOfWeek = firstDayOfMonth.getDay();
+                let offset = dayOfWeek - state.weekStart;
+                if (offset < 0) offset += 7;
+                const gridStartDate = new Date(year, month, 1 - offset);
 
-            const firstDayOfMonth = new Date(year, month, 1);
-            let dayOfWeek = firstDayOfMonth.getDay();
+                this.renderGrid(gridStartDate, true, {month, year});
+                return;
+            }
 
-            // Adjust for week start
-            let offset = dayOfWeek - state.weekStart;
+            // --- Hijri Mode Logic ---
+            const h = this.gregorianToHijri(state.viewDate);
+            // Get accurate start of current hijri month (h.month, h.year)
+            const currentStart = this.getAccurateHijriMonthStart(h.year, h.month);
+
+            // Get accurate start of NEXT hijri month
+            let nextM = h.month + 1;
+            let nextY = h.year;
+            if (nextM > 11) { nextM = 0; nextY++; }
+            const nextStart = this.getAccurateHijriMonthStart(nextY, nextM);
+
+            // Display Title
+            elements.monthDisplay.textContent = `${t.months[h.month]} ${h.year}`;
+
+            // Calculate offset based on week start
+            const startDayOfWeek = currentStart.gDate.getDay();
+            let offset = startDayOfWeek - state.weekStart;
             if (offset < 0) offset += 7;
 
-            const gridStartDate = new Date(year, month, 1 - offset);
+            // Determine Grid Start Date (Gregorian)
+            const gridStartDate = new Date(currentStart.gDate);
+            gridStartDate.setDate(gridStartDate.getDate() - offset);
+
+            this.renderGrid(gridStartDate, false, {hMonth: h.month, hYear: h.year, startGDate: currentStart.gDate, endGDate: nextStart.gDate});
+        }
+
+        renderGrid(gridStartDate, isGregorianMode, context) {
+            const grid = elements.calendar;
+            const t = text[state.lang];
 
             // Generate Headers
             grid.innerHTML = '';
-            const t = text[state.lang];
             for(let i=0; i<7; i++) {
                 let dIndex = (state.weekStart + i) % 7;
                 const el = document.createElement('div');
@@ -862,22 +912,27 @@
                 grid.appendChild(el);
             }
 
-            // Determine Hijri Context
-            const startKw = this.gregorianToHijri(gridStartDate);
-            let hMonthIdx = startKw.month;
-            let hYear = startKw.year;
+            // Prepare Hijri Data for Gregorian Mode (Need overlapping Hijri months)
+            // or Just use accurate logic for every day?
+            // To be efficient, we can pre-calculate key points if needed,
+            // but for 42 days, running the check loop is cheap enough.
 
-            const hStarts = [];
-            for(let i = -1; i <= 2; i++) {
-                let m = hMonthIdx + i;
-                let y = hYear;
-                while(m > 11) { m -= 12; y++; }
-                while(m < 0) { m += 12; y--; }
-
-                const st = this.getAccurateHijriMonthStart(y, m);
-                hStarts.push({ y: y, m: m, gDate: st.gDate });
+            // Pre-fetch relevant hijri month starts if in Gregorian mode to avoid re-calc
+            let hStarts = [];
+            if (isGregorianMode) {
+                const startKw = this.gregorianToHijri(gridStartDate);
+                let hMonthIdx = startKw.month;
+                let hYear = startKw.year;
+                for(let i = -1; i <= 2; i++) {
+                    let m = hMonthIdx + i;
+                    let y = hYear;
+                    while(m > 11) { m -= 12; y++; }
+                    while(m < 0) { m += 12; y--; }
+                    const st = this.getAccurateHijriMonthStart(y, m);
+                    hStarts.push({ y: y, m: m, gDate: st.gDate });
+                }
+                hStarts.sort((a,b) => a.gDate - b.gDate);
             }
-            hStarts.sort((a,b) => a.gDate - b.gDate);
 
             const today = new Date();
             today.setHours(0,0,0,0);
@@ -885,32 +940,140 @@
             for (let i = 0; i < 42; i++) {
                 const date = new Date(gridStartDate);
                 date.setDate(gridStartDate.getDate() + i);
+                const dateNoTime = new Date(date).setHours(0,0,0,0);
 
                 let hDateDisplay = "";
                 let hMonthNameDisplay = "";
 
-                for (let k = 0; k < hStarts.length - 1; k++) {
-                    const s1 = hStarts[k];
-                    const s2 = hStarts[k+1];
+                // Determine Hijri Date for this cell
+                // (Needed for both modes)
+                if (isGregorianMode) {
+                    for (let k = 0; k < hStarts.length - 1; k++) {
+                        const s1 = hStarts[k];
+                        const s2 = hStarts[k+1];
+                        if (date >= s1.gDate && date < s2.gDate) {
+                            const d2 = new Date(s1.gDate).setHours(0,0,0,0);
+                            const dayNum = Math.round((dateNoTime - d2) / 86400000) + 1;
+                            hDateDisplay = dayNum;
+                            hMonthNameDisplay = t.months[s1.m];
+                            break;
+                        }
+                    }
+                } else {
+                    // Hijri Mode:
+                    // context has {hMonth, hYear, startGDate, endGDate}
+                    // Check if date is within current Hijri Month
+                    if (date >= context.startGDate && date < context.endGDate) {
+                        const start = new Date(context.startGDate).setHours(0,0,0,0);
+                        hDateDisplay = Math.round((dateNoTime - start) / 86400000) + 1;
+                        // hMonthNameDisplay is implicit in title, but maybe show if edge?
+                        // Actually, in Hijri mode, we don't show the month name in the cell usually,
+                        // unless it's a "Other Month" cell?
+                    } else {
+                        // It's outside the target Hijri Month (prev or next)
+                        // We need to calculate what Hijri date it is.
+                        // For simplicity, do a quick inaccurate conversion or accurate lookaround?
+                        // Let's do accurate lookaround since we are effectively moving between months.
 
-                    if (date >= s1.gDate && date < s2.gDate) {
-                        const d1 = new Date(date).setHours(0,0,0,0);
-                        const d2 = new Date(s1.gDate).setHours(0,0,0,0);
-                        const dayNum = Math.round((d1 - d2) / 86400000) + 1;
+                        // Just use the same "look for starts" logic but centered on this date?
+                        // Or cheaper: Use Tabular as fallback for "grayed out" days?
+                        // No, consistency is key.
 
-                        hDateDisplay = dayNum;
-                        hMonthNameDisplay = t.months[s1.m];
-                        break;
+                        // Let's lazily find the start.
+                        const approx = this.gregorianToHijri(date);
+                        const st = this.getAccurateHijriMonthStart(approx.year, approx.month);
+                        const nextSt = this.getAccurateHijriMonthStart(approx.year, approx.month + 1 > 11 ? 0 : approx.month + 1, approx.month + 1 > 11 ? approx.year + 1 : approx.year); // Handle overflow in args if needed, but getAccurate handles simple args?
+                        // actually getAccurateHijriMonthStart handles year/month rollover logic? No, let's check.
+                        // It doesn't seem to internally handle month > 11 in args passed to cache key.
+
+                        // We need a helper for safe next month.
+                        let safeM = approx.month;
+                        let safeY = approx.year;
+
+                        // Find if date >= st.gDate
+                        if (date < st.gDate) {
+                           // Then it belongs to prev month?
+                           // This path is getting complex.
+                           // Simpler approach:
+                           // We are only drawing +/- a few days from the main month.
+                           // Just calculate the "Hijri Day" relative to the Main Month start.
+                           // If it's negative, it's prev month.
+                           // If > length, it's next month.
+                           const start = new Date(context.startGDate).setHours(0,0,0,0);
+                           const diff = Math.round((dateNoTime - start) / 86400000) + 1;
+
+                           if (diff < 1) {
+                               // Prev Month
+                               // Determine length of prev month to find day number (e.g. 30, 29)
+                               // Prev Month End is context.startGDate.
+                               // We need Prev Month Start.
+                               let pm = context.hMonth - 1; let py = context.hYear;
+                               if(pm<0){pm+=12; py--;}
+                               const pStart = this.getAccurateHijriMonthStart(py, pm);
+                               const pLen = Math.round((context.startGDate - pStart.gDate)/86400000);
+                               hDateDisplay = pLen + diff; // diff is negative or zero (Wait, diff=0 is Day 0? No diff=1 is Day 1. diff=0 is Day 0 (last day of prev))
+                               // If diff=0 (day before start), it is Day 30 (if len 30).
+                               // 1st Day is diff=1.
+                               // 0th Day is diff=0.
+                               // -1 Day is diff=-1.
+
+                               // If pLen is 30.
+                               // Date is 1 day before start. diff = 0. hDate = 30 + 0 = 30. Correct.
+                               // Date is 2 days before. diff = -1. hDate = 30 - 1 = 29. Correct.
+
+                               hMonthNameDisplay = t.months[pm];
+                           } else {
+                               // Next Month
+                               // diff is > month length.
+                               // e.g. Length 30. diff is 31.
+                               // Day is 1.
+                               const len = Math.round((context.endGDate - context.startGDate)/86400000);
+                               hDateDisplay = diff - len;
+
+                               let nm = context.hMonth + 1;
+                               if(nm>11) nm=0;
+                               hMonthNameDisplay = t.months[nm];
+                           }
+                        } else {
+                             // Should be covered by main block, but "if (date < context.endGDate)" might fail if endGDate calculation had issues?
+                             // Assuming main block catches "current month" days.
+                             const start = new Date(context.startGDate).setHours(0,0,0,0);
+                             hDateDisplay = Math.round((dateNoTime - start) / 86400000) + 1;
+                        }
                     }
                 }
 
                 const el = document.createElement('div');
                 el.className = 'day-cell';
-                if (date.getMonth() !== month) el.classList.add('other-month');
+
+                // Determine styling class
+                if (isGregorianMode) {
+                    if (date.getMonth() !== context.month) el.classList.add('other-month');
+                } else {
+                    // Hijri Mode: Other month if outside [startGDate, endGDate)
+                    if (date < context.startGDate || date >= context.endGDate) {
+                        el.classList.add('other-month');
+                    }
+                }
+
                 if (date.getTime() === today.getTime()) el.classList.add('today');
 
+                // Content
+                // Hijri Mode: Hijri Date is Primary (Big), Gregorian is Secondary (Small)
+                // Gregorian Mode: Gregorian is Primary (Big), Hijri is Secondary (Small)
+                // The CSS handles size/order via .gregorian-date and .hijri-date classes?
+                // CSS:
+                // .gregorian-date { font-size: 1.2rem; }
+                // .hijri-primary .gregorian-date { font-size: 0.9rem; }
+                // .hijri-primary .hijri-date { font-size: 1.2rem; }
+
+                // We just need to put the data in.
+
+                const gMonthNameShort = date.toLocaleDateString(state.lang==='id'?'id-ID':'en-US', {month:'short'});
+                const gDateText = isGregorianMode ? date.getDate() : `${date.getDate()} ${gMonthNameShort}`;
+
                 el.innerHTML = `
-                    <div class="gregorian-date">${date.getDate()}</div>
+                    <div class="gregorian-date">${gDateText}</div>
                     <div class="hijri-wrapper">
                         <div class="hijri-date">${hDateDisplay}</div>
                         <div class="hijri-month-name">${hMonthNameDisplay}</div>
