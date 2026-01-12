@@ -161,9 +161,38 @@
         .day-cell.other-month { opacity: 0.5; background: var(--formula-bg); }
         .day-cell.today { background: var(--highlight-bg); }
 
-        .gregorian-date { font-size: 1.2rem; font-weight: 700; }
-        .hijri-date { font-size: 0.9rem; color: var(--primary); text-align: right; font-weight: 600; }
-        .hijri-month-name { font-size: 0.75rem; opacity: 0.8; text-align: right; }
+        /* Default: Gregorian Primary */
+        .gregorian-date { font-size: 1.2rem; font-weight: 700; order: 1; }
+        .hijri-wrapper { order: 2; text-align: right; }
+        .hijri-date { font-size: 0.9rem; color: var(--primary); font-weight: 600; }
+        .hijri-month-name { font-size: 0.75rem; opacity: 0.8; }
+
+        /* Hijri Primary Mode */
+        .calendar-grid.hijri-primary .gregorian-date {
+            order: 2;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: right;
+            color: var(--primary);
+            align-self: flex-end;
+            width: 100%;
+        }
+
+        .calendar-grid.hijri-primary .hijri-wrapper {
+            order: 1;
+            text-align: left;
+        }
+
+        .calendar-grid.hijri-primary .hijri-date {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            text-align: left;
+        }
+
+        .calendar-grid.hijri-primary .hijri-month-name {
+            text-align: left;
+        }
 
         .controls {
             display: flex;
@@ -184,14 +213,14 @@
         .row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
         .row > * { flex: 1; }
 
-        /* Dialog Styles */
+        /* Dialog Styles (Updated) */
         dialog {
             background: var(--surface);
             color: var(--text);
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 1.5rem;
-            max-width: 500px;
+            max-width: 400px;
             width: 100%;
             margin: auto;
             position: fixed;
@@ -204,13 +233,58 @@
             align-items: center;
             margin-bottom: 1.5rem;
         }
+        .dialog-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
         .close-button {
             background: transparent;
             color: var(--text);
-            border: none;
+            padding: .25rem;
             font-size: 1.5rem;
+            line-height: 1;
+            border: none;
             width: auto;
-            padding: 0 0.5rem;
+        }
+        .close-button:hover {
+            background: var(--background);
+            color: var(--text);
+        }
+
+        .group {
+            background: var(--background);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        /* Specific input styling for inside dialog */
+        dialog input:not([type=color]):not([type=range]),
+        dialog textarea,
+        dialog select,
+        dialog button {
+            width: 100%;
+            padding: .5rem .75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--surface);
+            color: var(--text);
+            margin-top: 4px;
+            font-family: inherit;
+            font-size: .95rem;
+        }
+
+        dialog button {
+            background: var(--primary);
+            color: var(--on-primary);
+            border: 0;
+            cursor: pointer;
+        }
+        dialog button:hover {
+            background: var(--hover);
         }
 
         .info-text {
@@ -241,7 +315,10 @@
 
     <div class="controls">
         <div class="control-group">
-            <h3 id="gotoTitle">Go to Date</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 id="gotoTitle">Go to Date</h3>
+                <button id="todayBtn" class="secondary" style="width:auto; padding: 2px 8px; font-size:0.8rem;">Today</button>
+            </div>
             <div class="row">
                 <input type="date" id="gDateInput">
                 <button id="goBtn" class="primary">Go</button>
@@ -282,60 +359,67 @@
 
 <dialog id="prefDialog">
     <div class="dialog-header">
-        <h2 id="prefTitle">Preferences</h2>
-        <button id="closePref" class="close-button">&times;</button>
+        <h3 id="prefTitle">Preferences</h3>
+        <button id="closePref" class="close-button" aria-label="Close Settings">&times;</button>
     </div>
 
-    <div style="display: flex; flex-direction: column; gap: 1rem;">
-        <div>
-            <label for="language">Language</label>
+    <div class="group">
+        <label>
+            <span id="langLabel">Language</span>
             <select id="language">
                 <option value="en">English</option>
                 <option value="id">Bahasa Indonesia</option>
             </select>
-        </div>
-
-        <div>
-            <label for="theme">Theme</label>
+        </label>
+        <label>
+            <span id="themeLabel">Theme</span>
             <select id="theme">
                 <option value="auto">Auto</option>
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
             </select>
-        </div>
-
-        <div>
-            <label id="weekStartLabel">Week starts on</label>
+        </label>
+        <label>
+            <span id="primaryCalLabel">Primary Calendar</span>
+            <select id="primaryCalendar">
+                <option value="gregorian">Gregorian</option>
+                <option value="hijri">Hijri</option>
+            </select>
+        </label>
+        <label>
+            <span id="weekStartLabel">Week starts on</span>
             <select id="weekStart">
                 <option value="0">Sunday</option>
                 <option value="1">Monday</option>
                 <option value="6">Saturday</option>
             </select>
-        </div>
-
-        <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem;">
-            <label>Location</label>
-            <div class="row">
-                <div style="flex:1">
-                    <label style="font-weight:normal; font-size:0.8em">Lat</label>
-                    <input type="number" id="latInput" step="0.0001">
-                </div>
-                <div style="flex:1">
-                    <label style="font-weight:normal; font-size:0.8em">Lon</label>
-                    <input type="number" id="lonInput" step="0.0001">
-                </div>
-            </div>
-            <button id="myLocBtn" class="secondary">Use My Location</button>
-        </div>
-
-        <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem;">
-            <label id="adjLabel">Hijri Adjustment (Days)</label>
-            <input type="number" id="hijriAdj" value="0" min="-2" max="2">
-            <small style="opacity: 0.6;">Shifts the Tabular formula.</small>
-        </div>
-
-        <button id="savePrefBtn" class="primary" style="margin-top: 1rem;">Save & Close</button>
+        </label>
     </div>
+
+    <div class="group">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem">
+            <label id="locLabel" style="margin-bottom:0">Location</label>
+            <button id="myLocBtn" style="width:auto; padding: .25rem .5rem; font-size:.8rem; background:transparent; color:var(--primary); border:none;">Use My Location</button>
+        </div>
+        <div class="row">
+            <div style="flex:1">
+                <label style="font-weight:normal; font-size:0.8em">Lat</label>
+                <input type="number" id="latInput" step="0.0001">
+            </div>
+            <div style="flex:1">
+                <label style="font-weight:normal; font-size:0.8em">Lon</label>
+                <input type="number" id="lonInput" step="0.0001">
+            </div>
+        </div>
+    </div>
+
+    <div class="group">
+        <label id="adjLabel">Hijri Adjustment (Days)</label>
+        <input type="number" id="hijriAdj" value="0" min="-2" max="2">
+        <small style="opacity: 0.6;">Shifts the Tabular formula.</small>
+    </div>
+
+    <button id="savePrefBtn">Save & Close</button>
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
@@ -344,10 +428,15 @@
         en: {
             appTitle: 'MABBIMS Hijri Calendar',
             gotoTitle: 'Go to Date',
+            today: 'Today',
             formulaTitle: 'Heuristic Formula',
             formulaDesc: 'Optimized Tabular (Type II) algorithm.',
             prefTitle: 'Preferences',
+            langLabel: 'Language',
+            themeLabel: 'Theme',
+            primaryCalLabel: 'Primary Calendar',
             weekStartLabel: 'Week starts on',
+            locLabel: 'Location',
             adjLabel: 'Hijri Adjustment (Days)',
             save: 'Save & Close',
             myLoc: 'Use My Location',
@@ -360,10 +449,15 @@
         id: {
             appTitle: 'Kalender Hijriyah MABBIMS',
             gotoTitle: 'Ke Tanggal',
+            today: 'Hari Ini',
             formulaTitle: 'Rumus Heuristik',
             formulaDesc: 'Algoritma Tabular (Tipe II) yang dioptimalkan.',
             prefTitle: 'Pengaturan',
+            langLabel: 'Bahasa',
+            themeLabel: 'Tema',
+            primaryCalLabel: 'Kalender Utama',
             weekStartLabel: 'Awal pekan',
+            locLabel: 'Lokasi',
             adjLabel: 'Penyesuaian Hijriyah (Hari)',
             save: 'Simpan & Tutup',
             myLoc: 'Gunakan Lokasi Saya',
@@ -378,21 +472,27 @@
     const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
 
     // Default State
-    const state = {
+    let state = {
         lat: 6.075, // Aceh
         lon: 95.1125,
-        viewDate: new Date(),
         lang: 'en',
         theme: 'auto',
         weekStart: 0, // Sunday
-        hijriAdj: 0
+        hijriAdj: 0,
+        primaryCalendar: 'gregorian'
     };
 
     class HijriCalc {
         constructor() {
             this.isOffline = (typeof Astronomy === 'undefined');
+            this.loadState();
+
+            // Override viewDate to today regardless of persisted state, as requested
+            state.viewDate = new Date();
+
             this.setup();
-            this.updateLanguage('en');
+            this.updateLanguage(state.lang);
+            this.applyTheme(state.theme);
             this.render();
 
             if (this.isOffline) {
@@ -404,7 +504,6 @@
                 warning.style.marginBottom = '1rem';
                 warning.textContent = 'Offline Mode: Using approximate Tabular algorithm';
 
-                // Insert inside container for better layout
                 const container = document.querySelector('.container');
                 if (container) {
                     container.insertBefore(warning, container.firstChild);
@@ -412,9 +511,55 @@
             }
         }
 
-        // Calculate timezone offset from longitude
-        // Each 15° of longitude ≈ 1 hour of time difference from UTC
-	// **However, this is a simplification since real-world timezones have political boundaries.**
+        loadState() {
+            try {
+                const saved = localStorage.getItem('hijriCalcState');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    // Merge saved state with defaults (ignoring viewDate which we set to today later)
+                    // We only take specific properties to avoid pollution
+                    if(parsed.lat !== undefined) state.lat = parsed.lat;
+                    if(parsed.lon !== undefined) state.lon = parsed.lon;
+                    if(parsed.lang) state.lang = parsed.lang;
+                    if(parsed.theme) state.theme = parsed.theme;
+                    if(parsed.weekStart !== undefined) state.weekStart = parsed.weekStart;
+                    if(parsed.hijriAdj !== undefined) state.hijriAdj = parsed.hijriAdj;
+                    if(parsed.primaryCalendar) state.primaryCalendar = parsed.primaryCalendar;
+                }
+            } catch (e) {
+                console.error("Failed to load state", e);
+            }
+        }
+
+        savePreferences() {
+            state.lat = parseFloat(elements.latInput.value);
+            state.lon = parseFloat(elements.lonInput.value);
+            state.lang = elements.language.value;
+            state.weekStart = parseInt(elements.weekStart.value);
+            state.hijriAdj = parseInt(elements.hijriAdj.value);
+            state.primaryCalendar = elements.primaryCalendar.value;
+            state.theme = elements.theme.value;
+
+            localStorage.setItem('hijriCalcState', JSON.stringify({
+                lat: state.lat,
+                lon: state.lon,
+                lang: state.lang,
+                weekStart: state.weekStart,
+                hijriAdj: state.hijriAdj,
+                primaryCalendar: state.primaryCalendar,
+                theme: state.theme
+            }));
+
+            this.applyTheme(state.theme);
+            this.updateLanguage(state.lang);
+            this.render();
+        }
+
+        applyTheme(theme) {
+             document.documentElement.className = theme === 'auto' ? '' : theme;
+             elements.theme.value = theme;
+        }
+
         getTimezoneOffset() {
             return Math.round(state.lon / 15);
         }
@@ -423,9 +568,16 @@
             // Init inputs
             elements.latInput.value = state.lat;
             elements.lonInput.value = state.lon;
+            elements.language.value = state.lang;
+            elements.weekStart.value = state.weekStart;
+            elements.hijriAdj.value = state.hijriAdj;
+            elements.primaryCalendar.value = state.primaryCalendar;
+            elements.theme.value = state.theme;
+
             elements.gDateInput.valueAsDate = new Date();
 
             // Populate Hijri Month Select
+            // (Will be updated with language later, but init struct here)
             text.en.months.forEach((m, i) => {
                 const opt = document.createElement('option');
                 opt.value = i;
@@ -449,26 +601,25 @@
 
             elements.myLocBtn.onclick = () => this.getLocation();
 
-            elements.prevMonthBtn.onclick = () => {
-                state.viewDate.setMonth(state.viewDate.getMonth() - 1);
+            elements.todayBtn.onclick = () => {
+                state.viewDate = new Date();
+                elements.gDateInput.valueAsDate = state.viewDate;
+                this.updateHijriInputs(state.viewDate);
                 this.render();
             };
+
+            elements.prevMonthBtn.onclick = () => {
+                this.navigateMonth(-1);
+            };
             elements.nextMonthBtn.onclick = () => {
-                state.viewDate.setMonth(state.viewDate.getMonth() + 1);
-                this.render();
+                this.navigateMonth(1);
             };
 
             elements.goBtn.onclick = () => {
                 const d = elements.gDateInput.valueAsDate;
                 if(d) {
                     state.viewDate = d;
-
-                    // Sync Hijri inputs
-                    const h = this.gregorianToHijri(d);
-                    elements.hDayInput.value = h.day;
-                    elements.hMonthInput.value = h.month;
-                    elements.hYearInput.value = h.year;
-
+                    this.updateHijriInputs(d);
                     this.render();
                 }
             };
@@ -486,6 +637,33 @@
             };
         }
 
+        navigateMonth(delta) {
+             if (state.primaryCalendar === 'hijri') {
+                 // Move by Hijri Month
+                 const h = this.gregorianToHijri(state.viewDate);
+                 let newM = h.month + delta;
+                 let newY = h.year;
+                 while(newM > 11) { newM -= 12; newY++; }
+                 while(newM < 0) { newM += 12; newY--; }
+
+                 // Jump to start of that month to ensure we are in it
+                 const start = this.getAccurateHijriMonthStart(newY, newM);
+                 // Add 15 days to be in the middle of the month for stability
+                 state.viewDate = new Date(start.gDate.getTime() + 15 * 86400000);
+             } else {
+                 // Gregorian
+                 state.viewDate.setMonth(state.viewDate.getMonth() + delta);
+             }
+             this.render();
+        }
+
+        updateHijriInputs(date) {
+            const h = this.gregorianToHijri(date);
+            elements.hDayInput.value = h.day;
+            elements.hMonthInput.value = h.month;
+            elements.hYearInput.value = h.year;
+        }
+
         getLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((pos) => {
@@ -497,40 +675,32 @@
             }
         }
 
-        savePreferences() {
-            state.lat = parseFloat(elements.latInput.value);
-            state.lon = parseFloat(elements.lonInput.value);
-            state.lang = elements.language.value;
-            state.weekStart = parseInt(elements.weekStart.value);
-            state.hijriAdj = parseInt(elements.hijriAdj.value);
-
-            const theme = elements.theme.value;
-            state.theme = theme;
-            document.documentElement.className = theme === 'auto' ? '' : theme;
-
-            this.updateLanguage(state.lang);
-            this.render();
-        }
-
         updateLanguage(lang) {
             const t = text[lang];
             elements.appTitle.textContent = t.appTitle;
-            elements.appSubtitle.textContent = `${state.lat}° N, ${state.lon}° E`; // Simplified display
+            elements.appSubtitle.textContent = `${state.lat}° N, ${state.lon}° E`;
             if (this.isOffline) {
                 elements.appSubtitle.textContent += " (Offline/Heuristic)";
             }
             elements.gotoTitle.textContent = t.gotoTitle;
+            elements.todayBtn.textContent = t.today;
             elements.formulaTitle.textContent = t.formulaTitle;
             elements.formulaDesc.textContent = t.formulaDesc;
             elements.prefTitle.textContent = t.prefTitle;
+
+            elements.langLabel.textContent = t.langLabel;
+            elements.themeLabel.textContent = t.themeLabel;
+            elements.primaryCalLabel.textContent = t.primaryCalLabel;
             elements.weekStartLabel.textContent = t.weekStartLabel;
+            elements.locLabel.textContent = t.locLabel;
             elements.adjLabel.textContent = t.adjLabel;
+
             elements.savePrefBtn.textContent = t.save;
             elements.myLocBtn.textContent = t.myLoc;
             elements.goBtn.textContent = t.go;
             elements.goHBtn.textContent = t.goH;
             elements.footerNote.textContent = t.footer;
-            elements.prefBtn.textContent = 'Settings'; // Or localized
+            elements.prefBtn.textContent = t.prefTitle;
 
             // Update Hijri Month Select Options
             [...elements.hMonthInput.options].forEach((opt, i) => {
@@ -614,8 +784,6 @@
 
         // MABBIMS Calculation
         checkVisibility(dateObj) {
-            // Use calculated timezone for "Civil Day" logic,
-            // but we use actual Observer coords for Physics.
             const UTC_OFFSET = this.getTimezoneOffset();
             const baseUTC = new Date(dateObj);
             baseUTC.setHours(12 - UTC_OFFSET);
@@ -662,8 +830,6 @@
             if (!bestNM) return { gDate: approxDate };
 
             const nmDate = bestNM.date;
-            // Shift to local civil time.
-            // Using calculated timezone to approximate the civil day.
             const UTC_OFFSET = this.getTimezoneOffset();
             nmDate.setMinutes(nmDate.getMinutes() + UTC_OFFSET * 60);
 
@@ -680,27 +846,64 @@
 
         render() {
             const grid = elements.calendar;
-            const year = state.viewDate.getFullYear();
-            const month = state.viewDate.getMonth();
+            const t = text[state.lang];
 
-            const langCode = state.lang === 'id' ? 'id-ID' : 'en-US';
-            elements.monthDisplay.textContent = state.viewDate.toLocaleDateString(langCode, { month: 'long', year: 'numeric' });
+            // Toggle Primary Class
+            if (state.primaryCalendar === 'hijri') {
+                grid.classList.add('hijri-primary');
+            } else {
+                grid.classList.remove('hijri-primary');
+            }
 
-            const firstDayOfMonth = new Date(year, month, 1);
-            let dayOfWeek = firstDayOfMonth.getDay();
+            // --- Gregorian Mode Logic ---
+            if (state.primaryCalendar !== 'hijri') {
+                const year = state.viewDate.getFullYear();
+                const month = state.viewDate.getMonth();
+                const langCode = state.lang === 'id' ? 'id-ID' : 'en-US';
+                elements.monthDisplay.textContent = state.viewDate.toLocaleDateString(langCode, { month: 'long', year: 'numeric' });
 
-            // Adjust for week start
-            // 0=Sun, 1=Mon.
-            // If WeekStart=1 (Mon) and Day=0 (Sun), offset should be 6.
-            // If WeekStart=1 (Mon) and Day=1 (Mon), offset should be 0.
-            let offset = dayOfWeek - state.weekStart;
+                const firstDayOfMonth = new Date(year, month, 1);
+                let dayOfWeek = firstDayOfMonth.getDay();
+                let offset = dayOfWeek - state.weekStart;
+                if (offset < 0) offset += 7;
+                const gridStartDate = new Date(year, month, 1 - offset);
+
+                this.renderGrid(gridStartDate, true, {month, year});
+                return;
+            }
+
+            // --- Hijri Mode Logic ---
+            const h = this.gregorianToHijri(state.viewDate);
+            // Get accurate start of current hijri month (h.month, h.year)
+            const currentStart = this.getAccurateHijriMonthStart(h.year, h.month);
+
+            // Get accurate start of NEXT hijri month
+            let nextM = h.month + 1;
+            let nextY = h.year;
+            if (nextM > 11) { nextM = 0; nextY++; }
+            const nextStart = this.getAccurateHijriMonthStart(nextY, nextM);
+
+            // Display Title
+            elements.monthDisplay.textContent = `${t.months[h.month]} ${h.year}`;
+
+            // Calculate offset based on week start
+            const startDayOfWeek = currentStart.gDate.getDay();
+            let offset = startDayOfWeek - state.weekStart;
             if (offset < 0) offset += 7;
 
-            const gridStartDate = new Date(year, month, 1 - offset);
+            // Determine Grid Start Date (Gregorian)
+            const gridStartDate = new Date(currentStart.gDate);
+            gridStartDate.setDate(gridStartDate.getDate() - offset);
+
+            this.renderGrid(gridStartDate, false, {hMonth: h.month, hYear: h.year, startGDate: currentStart.gDate, endGDate: nextStart.gDate});
+        }
+
+        renderGrid(gridStartDate, isGregorianMode, context) {
+            const grid = elements.calendar;
+            const t = text[state.lang];
 
             // Generate Headers
             grid.innerHTML = '';
-            const t = text[state.lang];
             for(let i=0; i<7; i++) {
                 let dIndex = (state.weekStart + i) % 7;
                 const el = document.createElement('div');
@@ -709,22 +912,27 @@
                 grid.appendChild(el);
             }
 
-            // Determine Hijri Context
-            const startKw = this.gregorianToHijri(gridStartDate);
-            let hMonthIdx = startKw.month;
-            let hYear = startKw.year;
+            // Prepare Hijri Data for Gregorian Mode (Need overlapping Hijri months)
+            // or Just use accurate logic for every day?
+            // To be efficient, we can pre-calculate key points if needed,
+            // but for 42 days, running the check loop is cheap enough.
 
-            const hStarts = [];
-            for(let i = -1; i <= 2; i++) {
-                let m = hMonthIdx + i;
-                let y = hYear;
-                while(m > 11) { m -= 12; y++; }
-                while(m < 0) { m += 12; y--; }
-
-                const st = this.getAccurateHijriMonthStart(y, m);
-                hStarts.push({ y: y, m: m, gDate: st.gDate });
+            // Pre-fetch relevant hijri month starts if in Gregorian mode to avoid re-calc
+            let hStarts = [];
+            if (isGregorianMode) {
+                const startKw = this.gregorianToHijri(gridStartDate);
+                let hMonthIdx = startKw.month;
+                let hYear = startKw.year;
+                for(let i = -1; i <= 2; i++) {
+                    let m = hMonthIdx + i;
+                    let y = hYear;
+                    while(m > 11) { m -= 12; y++; }
+                    while(m < 0) { m += 12; y--; }
+                    const st = this.getAccurateHijriMonthStart(y, m);
+                    hStarts.push({ y: y, m: m, gDate: st.gDate });
+                }
+                hStarts.sort((a,b) => a.gDate - b.gDate);
             }
-            hStarts.sort((a,b) => a.gDate - b.gDate);
 
             const today = new Date();
             today.setHours(0,0,0,0);
@@ -732,33 +940,141 @@
             for (let i = 0; i < 42; i++) {
                 const date = new Date(gridStartDate);
                 date.setDate(gridStartDate.getDate() + i);
+                const dateNoTime = new Date(date).setHours(0,0,0,0);
 
                 let hDateDisplay = "";
                 let hMonthNameDisplay = "";
 
-                for (let k = 0; k < hStarts.length - 1; k++) {
-                    const s1 = hStarts[k];
-                    const s2 = hStarts[k+1];
+                // Determine Hijri Date for this cell
+                // (Needed for both modes)
+                if (isGregorianMode) {
+                    for (let k = 0; k < hStarts.length - 1; k++) {
+                        const s1 = hStarts[k];
+                        const s2 = hStarts[k+1];
+                        if (date >= s1.gDate && date < s2.gDate) {
+                            const d2 = new Date(s1.gDate).setHours(0,0,0,0);
+                            const dayNum = Math.round((dateNoTime - d2) / 86400000) + 1;
+                            hDateDisplay = dayNum;
+                            hMonthNameDisplay = t.months[s1.m];
+                            break;
+                        }
+                    }
+                } else {
+                    // Hijri Mode:
+                    // context has {hMonth, hYear, startGDate, endGDate}
+                    // Check if date is within current Hijri Month
+                    if (date >= context.startGDate && date < context.endGDate) {
+                        const start = new Date(context.startGDate).setHours(0,0,0,0);
+                        hDateDisplay = Math.round((dateNoTime - start) / 86400000) + 1;
+                        // hMonthNameDisplay is implicit in title, but maybe show if edge?
+                        // Actually, in Hijri mode, we don't show the month name in the cell usually,
+                        // unless it's a "Other Month" cell?
+                    } else {
+                        // It's outside the target Hijri Month (prev or next)
+                        // We need to calculate what Hijri date it is.
+                        // For simplicity, do a quick inaccurate conversion or accurate lookaround?
+                        // Let's do accurate lookaround since we are effectively moving between months.
 
-                    if (date >= s1.gDate && date < s2.gDate) {
-                        const d1 = new Date(date).setHours(0,0,0,0);
-                        const d2 = new Date(s1.gDate).setHours(0,0,0,0);
-                        const dayNum = Math.round((d1 - d2) / 86400000) + 1;
+                        // Just use the same "look for starts" logic but centered on this date?
+                        // Or cheaper: Use Tabular as fallback for "grayed out" days?
+                        // No, consistency is key.
 
-                        hDateDisplay = dayNum;
-                        hMonthNameDisplay = t.months[s1.m];
-                        break;
+                        // Let's lazily find the start.
+                        const approx = this.gregorianToHijri(date);
+                        const st = this.getAccurateHijriMonthStart(approx.year, approx.month);
+                        const nextSt = this.getAccurateHijriMonthStart(approx.year, approx.month + 1 > 11 ? 0 : approx.month + 1, approx.month + 1 > 11 ? approx.year + 1 : approx.year); // Handle overflow in args if needed, but getAccurate handles simple args?
+                        // actually getAccurateHijriMonthStart handles year/month rollover logic? No, let's check.
+                        // It doesn't seem to internally handle month > 11 in args passed to cache key.
+
+                        // We need a helper for safe next month.
+                        let safeM = approx.month;
+                        let safeY = approx.year;
+
+                        // Find if date >= st.gDate
+                        if (date < st.gDate) {
+                           // Then it belongs to prev month?
+                           // This path is getting complex.
+                           // Simpler approach:
+                           // We are only drawing +/- a few days from the main month.
+                           // Just calculate the "Hijri Day" relative to the Main Month start.
+                           // If it's negative, it's prev month.
+                           // If > length, it's next month.
+                           const start = new Date(context.startGDate).setHours(0,0,0,0);
+                           const diff = Math.round((dateNoTime - start) / 86400000) + 1;
+
+                           if (diff < 1) {
+                               // Prev Month
+                               // Determine length of prev month to find day number (e.g. 30, 29)
+                               // Prev Month End is context.startGDate.
+                               // We need Prev Month Start.
+                               let pm = context.hMonth - 1; let py = context.hYear;
+                               if(pm<0){pm+=12; py--;}
+                               const pStart = this.getAccurateHijriMonthStart(py, pm);
+                               const pLen = Math.round((context.startGDate - pStart.gDate)/86400000);
+                               hDateDisplay = pLen + diff; // diff is negative or zero (Wait, diff=0 is Day 0? No diff=1 is Day 1. diff=0 is Day 0 (last day of prev))
+                               // If diff=0 (day before start), it is Day 30 (if len 30).
+                               // 1st Day is diff=1.
+                               // 0th Day is diff=0.
+                               // -1 Day is diff=-1.
+
+                               // If pLen is 30.
+                               // Date is 1 day before start. diff = 0. hDate = 30 + 0 = 30. Correct.
+                               // Date is 2 days before. diff = -1. hDate = 30 - 1 = 29. Correct.
+
+                               hMonthNameDisplay = t.months[pm];
+                           } else {
+                               // Next Month
+                               // diff is > month length.
+                               // e.g. Length 30. diff is 31.
+                               // Day is 1.
+                               const len = Math.round((context.endGDate - context.startGDate)/86400000);
+                               hDateDisplay = diff - len;
+
+                               let nm = context.hMonth + 1;
+                               if(nm>11) nm=0;
+                               hMonthNameDisplay = t.months[nm];
+                           }
+                        } else {
+                             // Should be covered by main block, but "if (date < context.endGDate)" might fail if endGDate calculation had issues?
+                             // Assuming main block catches "current month" days.
+                             const start = new Date(context.startGDate).setHours(0,0,0,0);
+                             hDateDisplay = Math.round((dateNoTime - start) / 86400000) + 1;
+                        }
                     }
                 }
 
                 const el = document.createElement('div');
                 el.className = 'day-cell';
-                if (date.getMonth() !== month) el.classList.add('other-month');
+
+                // Determine styling class
+                if (isGregorianMode) {
+                    if (date.getMonth() !== context.month) el.classList.add('other-month');
+                } else {
+                    // Hijri Mode: Other month if outside [startGDate, endGDate)
+                    if (date < context.startGDate || date >= context.endGDate) {
+                        el.classList.add('other-month');
+                    }
+                }
+
                 if (date.getTime() === today.getTime()) el.classList.add('today');
 
+                // Content
+                // Hijri Mode: Hijri Date is Primary (Big), Gregorian is Secondary (Small)
+                // Gregorian Mode: Gregorian is Primary (Big), Hijri is Secondary (Small)
+                // The CSS handles size/order via .gregorian-date and .hijri-date classes?
+                // CSS:
+                // .gregorian-date { font-size: 1.2rem; }
+                // .hijri-primary .gregorian-date { font-size: 0.9rem; }
+                // .hijri-primary .hijri-date { font-size: 1.2rem; }
+
+                // We just need to put the data in.
+
+                const gMonthNameShort = date.toLocaleDateString(state.lang==='id'?'id-ID':'en-US', {month:'short'});
+                const gDateText = isGregorianMode ? date.getDate() : `${date.getDate()} ${gMonthNameShort}`;
+
                 el.innerHTML = `
-                    <div class="gregorian-date">${date.getDate()}</div>
-                    <div>
+                    <div class="gregorian-date">${gDateText}</div>
+                    <div class="hijri-wrapper">
                         <div class="hijri-date">${hDateDisplay}</div>
                         <div class="hijri-month-name">${hMonthNameDisplay}</div>
                     </div>
