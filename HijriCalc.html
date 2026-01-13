@@ -132,7 +132,7 @@
 
         .calendar-grid {
             display: grid;
-            grid-template-columns: repeat(7, minmax(40px, 1fr));
+            grid-template-columns: repeat(7, minmax(50px, 1fr));
             gap: 1px;
             background: var(--border);
             border: 1px solid var(--border);
@@ -864,7 +864,13 @@
             const tStart = Astronomy.MakeTime(searchStart);
             let bestNM = Astronomy.SearchMoonPhase(0, tStart.ut, 10);
 
-            if (!bestNM) return { gDate: approxDate };
+            // Sanity check: If bestNM is too far from approxDate (> 4 days), it's likely wrong.
+            // approxDate is mean conjunction, deviation shouldn't exceed ~1 day.
+            // But we allow 4 days to be super safe against timezones/anomalies.
+            // If it fails, fallback to approxDate (Tabular).
+            if (!bestNM || Math.abs(bestNM.date - approxDate) > 4 * 86400000) {
+                 return { gDate: approxDate };
+            }
 
             const nmDate = bestNM.date;
             const UTC_OFFSET = this.getTimezoneOffset();
@@ -1059,7 +1065,11 @@
                                // diff is > month length.
                                // e.g. Length 30. diff is 31.
                                // Day is 1.
-                               const len = Math.round((context.endGDate - context.startGDate)/86400000);
+                               let len = Math.round((context.endGDate - context.startGDate)/86400000);
+
+                               // Safety check for len
+                               if (len < 29 || len > 30) len = 30;
+
                                hDateDisplay = diff - len;
 
                                let nm = context.hMonth + 1;
