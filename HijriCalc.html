@@ -702,7 +702,7 @@
 
             // Keyboard Navigation (Delegation)
             elements.calendar.addEventListener('keydown', (e) => {
-                const keys = ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Enter', ' '];
+                const keys = ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', 'Enter', ' '];
                 if (!keys.includes(e.key)) return;
 
                 const cell = e.target.closest('.day-cell');
@@ -711,6 +711,66 @@
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     cell.click();
+                    return;
+                }
+
+                if (e.key === 'PageUp' || e.key === 'PageDown') {
+                    e.preventDefault();
+                    const currentDateStr = cell.dataset.date;
+                    if (!currentDateStr) return;
+
+                    const delta = (e.key === 'PageDown') ? 1 : -1;
+                    let targetDate;
+
+                    if (state.primaryCalendar === 'hijri') {
+                        // Hijri Month Navigation
+                         const [y, m, d] = currentDateStr.split('-').map(Number);
+                         const cDate = new Date(y, m - 1, d);
+                         const h = this.gregorianToHijri(cDate);
+
+                         // Add delta to Hijri Month
+                         let newM = h.month + delta;
+                         let newY = h.year;
+                         while(newM > 11) { newM -= 12; newY++; }
+                         while(newM < 0) { newM += 12; newY--; }
+
+                         // Convert back to Gregorian preserving hDay
+                         targetDate = this.hijriToGregorian(newY, newM, h.day);
+                    } else {
+                        // Gregorian Month Navigation
+                        const [y, m, d] = currentDateStr.split('-').map(Number);
+                        const targetMonthVal = m - 1 + delta;
+
+                        // Check days in target month to clamp
+                        const checkDate = new Date(y, targetMonthVal, 1);
+                        const dim = new Date(checkDate.getFullYear(), checkDate.getMonth() + 1, 0).getDate();
+
+                        let targetDay = d;
+                        if (d > dim) targetDay = dim;
+
+                        targetDate = new Date(checkDate.getFullYear(), checkDate.getMonth(), targetDay);
+                    }
+
+                    // Update View
+                    this.navigateMonth(delta);
+
+                    // Restore Focus
+                    const targetIso = `${targetDate.getFullYear()}-${String(targetDate.getMonth()+1).padStart(2,'0')}-${String(targetDate.getDate()).padStart(2,'0')}`;
+                    const targetCell = elements.calendar.querySelector(`.day-cell[data-date="${targetIso}"]`);
+
+                    if (targetCell) {
+                        cell.tabIndex = -1;
+                        targetCell.tabIndex = 0;
+                        targetCell.focus();
+                    } else {
+                        // Fallback: focus first cell if exact date not found
+                         const first = elements.calendar.querySelector('.day-cell');
+                         if(first) {
+                             cell.tabIndex = -1;
+                             first.tabIndex = 0;
+                             first.focus();
+                         }
+                    }
                     return;
                 }
 
@@ -1264,6 +1324,7 @@
 
                 const fullDate = date.toLocaleDateString(state.lang==='id'?'id-ID':'en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
                 el.setAttribute('aria-label', `${fullDate}, ${hDateDisplay} ${hMonthNameDisplay}`);
+                el.dataset.date = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
                 // Content
                 // Hijri Mode: Hijri Date is Primary (Big), Gregorian is Secondary (Small)
