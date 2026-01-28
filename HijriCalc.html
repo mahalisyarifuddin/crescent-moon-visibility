@@ -232,16 +232,15 @@
 		}
 		.controls { 
 			display: flex; 
-			gap: 1rem; 
+			justify-content: center;
 			margin-bottom: 1.5rem; 
-			flex-wrap: wrap; 
 		}
 		.control-group {
-			flex: 1;
-			min-width: 200px;
+			width: 100%;
+			max-width: 600px;
 			background: var(--formula-bg);
-			padding: 1rem;
-			border-radius: 6px;
+			padding: 1.5rem;
+			border-radius: 8px;
 			border: 1px solid var(--border);
 		}
 		.row { 
@@ -368,6 +367,66 @@
 				transform: rotate(360deg); 
 			} 
 		}
+		.nav-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 1rem;
+		}
+		.small-btn {
+			width: auto;
+			padding: 6px 12px;
+			font-size: 0.9rem;
+		}
+		.input-group {
+			display: flex;
+			gap: 0.5rem;
+			margin-bottom: 1rem;
+			align-items: center;
+		}
+		.input-group > * {
+			flex: 1;
+		}
+		.sr-only {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			margin: -1px;
+			overflow: hidden;
+			clip: rect(0,0,0,0);
+			border: 0;
+		}
+		#hDayInput {
+			flex: 0.6;
+		}
+		#hMonthInput {
+			flex: 2;
+		}
+		#hYearInput {
+			flex: 1;
+		}
+		#goHBtn {
+			flex: 0.4;
+			min-width: 40px;
+			padding: 0.5rem;
+			font-weight: bold;
+		}
+		details {
+			margin-top: 2rem;
+			border-top: 1px solid var(--border);
+			padding-top: 1rem;
+		}
+		summary {
+			cursor: pointer;
+			opacity: 0.8;
+			font-size: 0.9rem;
+			margin-bottom: 0.5rem;
+		}
+		summary:hover {
+			opacity: 1;
+			color: var(--primary);
+		}
 	</style>
 </head>
 <body>
@@ -379,34 +438,31 @@
 		<p id="appSubtitle" style="opacity: 0.7; margin-bottom: 2rem;">6°04′30″ N 95°06′45″ E (UTC+7)</p>
 		<div class="controls">
 			<div class="control-group">
-				<div style="display:flex; justify-content:space-between; align-items:center;">
-					<h3 id="gotoTitle" data-i18n="gotoTitle">Go to Date</h3>
-					<button id="todayBtn" class="secondary" style="width:auto; padding: 4px 8px; font-size:0.85rem;" data-i18n="today">Today</button>
-				</div>
-				<div class="row">
+				<label class="sr-only" data-i18n="gDateLabel">Gregorian Date</label>
+				<div class="input-group">
 					<input type="date" id="gDateInput" data-i18n-aria="gDateLabel">
-					<button id="goBtn" class="primary" data-i18n="go" data-i18n-aria="goBtnLabel">Go</button>
+					<button id="todayBtn" class="secondary small-btn" data-i18n="today" style="flex:0.3">Today</button>
 				</div>
-				<div class="row" style="margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px;">
-					<input type="number" id="hDayInput" placeholder="D" min="1" max="30" style="flex: 0.6;" data-i18n-aria="hDayLabel">
-					<select id="hMonthInput" style="flex: 2;" data-i18n-aria="hMonthLabel"></select>
-					<input type="number" id="hYearInput" placeholder="Year" min="1300" max="2500" style="flex: 1;" data-i18n-aria="hYearLabel">
+				<div class="input-group" style="margin-bottom:0">
+					<input type="number" id="hDayInput" placeholder="D" min="1" max="30" data-i18n-aria="hDayLabel">
+					<select id="hMonthInput" data-i18n-aria="hMonthLabel"></select>
+					<input type="number" id="hYearInput" placeholder="Year" min="1300" max="2500" data-i18n-aria="hYearLabel" data-i18n-placeholder="yearPlaceholder">
+					<button id="goHBtn" class="primary" aria-label="Go to Hijri Date" data-i18n-aria="goHBtnLabel">&rarr;</button>
 				</div>
-				<button id="goHBtn" class="secondary" style="margin-top: 5px;" data-i18n="goH" data-i18n-aria="goHBtnLabel">Go to Hijri</button>
-			</div>
-			<div class="control-group">
-				<h3 id="formulaTitle" data-i18n="formulaTitle">Heuristic Formula</h3>
-				<p style="font-family: monospace; font-size: 0.9rem; background: var(--surface); padding: 5px; border: 1px solid var(--border); border-radius: 4px;">JD = floor( (11H + 14) / 30 ) + 354H + 2270158</p>
-				<p id="formulaDesc" style="font-size: 0.8rem; margin-top: 5px; opacity: 0.8;" data-i18n="formulaDesc">Optimized Tabular (Type II) algorithm.</p>
 			</div>
 		</div>
 		<div class="calendar-header">
-			<button id="prevMonthBtn" class="secondary" style="width: auto;" data-i18n-aria="prevMonthLabel">&larr; Prev</button>
+			<button id="prevMonthBtn" class="secondary" style="width: auto;" data-i18n="prevBtn" data-i18n-aria="prevMonthLabel">&larr; Prev</button>
 			<h2 id="monthDisplay">January 2026</h2>
-			<button id="nextMonthBtn" class="secondary" style="width: auto;" data-i18n-aria="nextMonthLabel">Next &rarr;</button>
+			<button id="nextMonthBtn" class="secondary" style="width: auto;" data-i18n="nextBtn" data-i18n-aria="nextMonthLabel">Next &rarr;</button>
 		</div>
 		<div class="calendar-grid" id="calendar"></div>
-		<p class="info-text" id="footerNote" data-i18n="footer">* Dates start at sunset. MABBIMS Criteria: Alt ≥ 3°, Elong ≥ 6.4°.</p>
+		<details>
+			<summary><span data-i18n="formulaTitle">Heuristic Formula</span></summary>
+			<p style="font-family: monospace; font-size: 0.9rem; background: var(--surface); padding: 5px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 5px;">JD = floor( (11H + 14) / 30 ) + 354H + 2270158</p>
+			<p id="formulaDesc" style="font-size: 0.8rem; opacity: 0.8;" data-i18n="formulaDesc">Optimized Tabular (Type II) algorithm.</p>
+			<p class="info-text" id="footerNote" data-i18n="footer">* Dates start at sunset. MABBIMS Criteria: Alt ≥ 3°, Elong ≥ 6.4°.</p>
+		</details>
 	</div>
 	<dialog id="prefDialog">
 		<div class="dialog-header">
@@ -483,7 +539,14 @@
 				goBtnLabel: 'Go to Gregorian Date',
 				goHBtnLabel: 'Go to Hijri Date',
 				prevMonthLabel: 'Previous Month',
-				nextMonthLabel: 'Next Month'
+				nextMonthLabel: 'Next Month',
+				prevBtn: '← Prev',
+				nextBtn: 'Next →',
+				yearPlaceholder: 'Year',
+				offlineWarning: 'Offline Mode: Using approximate Tabular algorithm',
+				geoNotSupported: 'Geolocation is not supported by this browser.',
+				errorLocation: 'Error getting location: ',
+				offlineSuffix: ' (Offline/Heuristic)'
 			},
 			id: {
 				appTitle: 'Kalender Hijriyah MABBIMS',
@@ -514,7 +577,14 @@
 				goBtnLabel: 'Buka Tanggal Masehi',
 				goHBtnLabel: 'Buka Tanggal Hijriyah',
 				prevMonthLabel: 'Bulan Sebelumnya',
-				nextMonthLabel: 'Bulan Berikutnya'
+				nextMonthLabel: 'Bulan Berikutnya',
+				prevBtn: '← Sblm',
+				nextBtn: 'Lanjut →',
+				yearPlaceholder: 'Tahun',
+				offlineWarning: 'Mode Offline: Menggunakan algoritma Tabular perkiraan',
+				geoNotSupported: 'Geolokasi tidak didukung oleh browser ini.',
+				errorLocation: 'Gagal mendapatkan lokasi: ',
+				offlineSuffix: ' (Offline/Heuristik)'
 			}
 		};
 		const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
@@ -543,7 +613,8 @@
 					console.warn("Astronomy Engine not loaded. Using Tabular method.");
 					const warning = document.createElement('div');
 					warning.style.cssText = 'color:var(--danger);text-align:center;font-weight:400;margin-bottom:1rem';
-					warning.textContent = 'Offline Mode: Using approximate Tabular algorithm';
+					warning.setAttribute('data-i18n', 'offlineWarning');
+					warning.textContent = text[state.lang].offlineWarning;
 					document.querySelector('.container')?.insertBefore(warning, document.querySelector('.container').firstChild);
 				}
 			}
@@ -665,7 +736,6 @@
 					const date = this.getDateFromInput(elements.gDateInput);
 					if (date) { state.viewDate = date; this.updateHijriInputs(date); this.render(); }
 				};
-				elements.goBtn.onclick = handleGo;
 				elements.gDateInput.addEventListener('change', handleGo);
 				elements.gDateInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') handleGo(); });
 
@@ -778,26 +848,26 @@
 			}
 
 			getLocation() {
+				const translation = text[state.lang];
 				if (navigator.geolocation) {
 					const button = elements.myLocBtn;
-					const originalText = button.textContent;
 					button.disabled = true;
-					button.innerHTML = `<span class="spinner"></span> ${text[state.lang].locating}`;
+					button.innerHTML = `<span class="spinner"></span> ${translation.locating}`;
 					navigator.geolocation.getCurrentPosition(
 						position => {
 							elements.latInput.value = position.coords.latitude.toFixed(4);
 							elements.lonInput.value = position.coords.longitude.toFixed(4);
 							button.disabled = false;
-							button.textContent = originalText;
+							button.textContent = translation.myLoc;
 						},
 						error => {
 							console.error(error);
-							alert("Error getting location: " + error.message);
+							alert(translation.errorLocation + error.message);
 							button.disabled = false;
-							button.textContent = originalText;
+							button.textContent = translation.myLoc;
 						}
 					);
-				} else alert("Geolocation is not supported by this browser.");
+				} else alert(translation.geoNotSupported);
 			}
 
 			formatCoordinates(latitude, longitude) {
@@ -829,8 +899,12 @@
 					const key = el.getAttribute('data-i18n-aria');
 					if (translation[key]) el.setAttribute('aria-label', translation[key]);
 				});
+				document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+					const key = el.getAttribute('data-i18n-placeholder');
+					if (translation[key]) el.placeholder = translation[key];
+				});
 				elements.appSubtitle.textContent = this.formatCoordinates(state.lat, state.lon);
-				if (this.isOffline) elements.appSubtitle.textContent += " (Offline/Heuristic)";
+				if (this.isOffline) elements.appSubtitle.textContent += translation.offlineSuffix;
 				[...elements.hMonthInput.options].forEach((option, index) => { option.textContent = translation.months[index]; });
 			}
 

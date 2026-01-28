@@ -366,7 +366,17 @@
 				illuminatedFraction: 'Illuminated Fraction',
 				visibilityStatus: 'Visibility Status',
 				visible: 'Visible',
-				notVisible: 'Not Visible'
+				notVisible: 'Not Visible',
+				regionIndonesia: 'Indonesia',
+				regionWorld: 'World',
+				criteriaMabbims: 'MABBIMS (Alt≥3°, Elong≥6.4°)',
+				criteriaGic: 'Global Islamic (Alt≥5°, Elong≥8°, <12am UTC)',
+				criteriaAlt0: 'Altitude > 0°',
+				criteriaCustom: 'Custom Criteria',
+				statusCancelled: 'Cancelled.',
+				statusDone: 'Done.',
+				statusError: 'Error: ',
+				cancel: 'Cancel'
 			},
 			id: {
 				locating: 'Mencari lokasi...',
@@ -403,7 +413,17 @@
 				illuminatedFraction: 'Fraksi Iluminasi',
 				visibilityStatus: 'Status Visibilitas',
 				visible: 'Terlihat',
-				notVisible: 'Tidak Terlihat'
+				notVisible: 'Tidak Terlihat',
+				regionIndonesia: 'Indonesia',
+				regionWorld: 'Dunia',
+				criteriaMabbims: 'MABBIMS (Alt≥3°, Elong≥6.4°)',
+				criteriaGic: 'Global Islamic (Alt≥5°, Elong≥8°, <12am UTC)',
+				criteriaAlt0: 'Tinggi Bulan > 0°',
+				criteriaCustom: 'Kriteria Kustom',
+				statusCancelled: 'Dibatalkan.',
+				statusDone: 'Selesai.',
+				statusError: 'Eror: ',
+				cancel: 'Batal'
 			}
 		};
 		const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
@@ -563,6 +583,17 @@ self.onmessage = function(e) {
 				this.language = elements.language.value = document.documentElement.lang = language;
 				Object.keys(text.en).forEach(key => { if (elements[key]) elements[key].textContent = this.string(key); });
 				[...elements.theme.options].forEach(option => option.textContent = this.string(option.value + "Theme"));
+
+				const translateOptions = (selectId, prefix) => {
+					[...elements[selectId].options].forEach(option => {
+						const val = option.value;
+						const key = prefix + val.charAt(0).toUpperCase() + val.slice(1);
+						option.textContent = this.string(key);
+					});
+				};
+				translateOptions('mapRegion', 'region');
+				translateOptions('mapCriteria', 'criteria');
+				translateOptions('calcCriteria', 'criteria');
 			}
 
 			toggleCustom() {
@@ -706,13 +737,13 @@ self.onmessage = function(e) {
 				this.isRendering = false;
 				elements.renderMap.disabled = false;
 				elements.renderMap.textContent = this.string("renderMap");
-				elements.mapStatus.textContent = "Cancelled.";
+				elements.mapStatus.textContent = this.string("statusCancelled");
 			}
 
 			startRender() {
 				this.isRendering = true;
 				elements.renderMap.disabled = false;
-				elements.renderMap.textContent = "Cancel";
+				elements.renderMap.textContent = this.string("cancel");
 				elements.mapStatus.innerHTML = `<span class="spinner"></span> ${this.string("calculating")}`;
 				const mapBounds = this.map.getBounds();
 				const bounds = {
@@ -747,7 +778,7 @@ self.onmessage = function(e) {
 					if (data.buffer) this.handleComplete(data.width, data.height, data.buffer);
 					else if (data.error) {
 						console.error(data.error);
-						elements.mapStatus.textContent = "Error: " + data.error;
+						elements.mapStatus.textContent = this.string("statusError") + data.error;
 						this.cancelRender();
 					}
 				};
@@ -765,7 +796,7 @@ self.onmessage = function(e) {
 				this.isRendering = false;
 				elements.renderMap.disabled = false;
 				elements.renderMap.textContent = this.string("renderMap");
-				elements.mapStatus.textContent = "Done.";
+				elements.mapStatus.textContent = this.string("statusDone");
 			}
 
 			updateOverlay(imageUrl, bounds) {
