@@ -376,7 +376,13 @@
 				statusCancelled: 'Cancelled.',
 				statusDone: 'Done.',
 				statusError: 'Error: ',
-				cancel: 'Cancel'
+				cancel: 'Cancel',
+				daysSuffix: ' days',
+				errorSun: 'Error: Sun does not set on this date/location.',
+				fillFields: 'Please fill in all fields correctly.',
+				geoError: 'Geolocation is not supported by this browser.',
+				locError: 'Error getting location: ',
+				utcPlaceholder: 'e.g. 7'
 			},
 			id: {
 				locating: 'Mencari lokasi...',
@@ -423,7 +429,13 @@
 				statusCancelled: 'Dibatalkan.',
 				statusDone: 'Selesai.',
 				statusError: 'Eror: ',
-				cancel: 'Batal'
+				cancel: 'Batal',
+				daysSuffix: ' hari',
+				errorSun: 'Eror: Matahari tidak terbenam pada tanggal/lokasi ini.',
+				fillFields: 'Mohon isi semua kolom dengan benar.',
+				geoError: 'Geolokasi tidak didukung oleh browser ini.',
+				locError: 'Gagal mendapatkan lokasi: ',
+				utcPlaceholder: 'contoh: 7'
 			}
 		};
 		const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
@@ -594,6 +606,8 @@ self.onmessage = function(e) {
 				translateOptions('mapRegion', 'region');
 				translateOptions('mapCriteria', 'criteria');
 				translateOptions('calcCriteria', 'criteria');
+
+				elements.calcUtcOffset.placeholder = this.string("utcPlaceholder");
 			}
 
 			toggleCustom() {
@@ -637,13 +651,13 @@ self.onmessage = function(e) {
 							button.innerHTML = originalText;
 						},
 						error => {
-							alert("Error getting location: " + error.message);
+							alert(this.string("locError") + error.message);
 							button.disabled = false;
 							button.innerHTML = originalText;
 						}
 					);
 				} else {
-					alert("Geolocation is not supported by this browser.");
+					alert(this.string("geoError"));
 					button.disabled = false;
 					button.innerHTML = originalText;
 				}
@@ -654,7 +668,7 @@ self.onmessage = function(e) {
 				const longitude = parseFloat(elements.calcLon.value);
 				const dateString = elements.calcDate.value;
 				const criteria = elements.calcCriteria.value;
-				if (isNaN(latitude) || isNaN(longitude) || !dateString) alert("Please fill in all fields correctly.");
+				if (isNaN(latitude) || isNaN(longitude) || !dateString) alert(this.string("fillFields"));
 				else this.calculateDetailsInner(latitude, longitude, dateString, criteria);
 			}
 
@@ -664,7 +678,7 @@ self.onmessage = function(e) {
 				const date = Astronomy.MakeTime(dateObj);
 				const sunset = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, -1, date.ut, 1);
 				if (!sunset) {
-					elements.results.innerHTML = "<div class=\"result-card\">Error: Sun does not set on this date/location.</div>";
+					elements.results.innerHTML = `<div class="result-card">${this.string("errorSun")}</div>`;
 					return;
 				}
 				this.calculateDetailsWithSunset(sunset, observer, date, criteria);
@@ -707,7 +721,7 @@ self.onmessage = function(e) {
 					{ label: "moonAlt", value: moonHor.altitude.toFixed(2) + "°" },
 					{ label: "moonElong", value: elongation.toFixed(2) + "°" },
 					{ label: "moonAzimuth", value: moonHor.azimuth.toFixed(2) + "°" },
-					{ label: "moonAge", value: ageInDays.toFixed(2) + " days" },
+					{ label: "moonAge", value: ageInDays.toFixed(2) + this.string("daysSuffix") },
 					{ label: "illuminatedFraction", value: (moonPhase.phase_fraction * 100).toFixed(2) + "%" }
 				];
 				let html = "";
