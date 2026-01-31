@@ -589,23 +589,23 @@ self.onmessage = function(e) {
 				this.startX = 0;
 				this.startY = 0;
 
-				elements.zoomIn.onclick = () => this.zoom(1.2);
-				elements.zoomOut.onclick = () => this.zoom(0.8);
-				elements.zoomReset.onclick = () => this.resetZoom();
+				elements['zoom-in'].onclick = () => this.zoom(1.2);
+				elements['zoom-out'].onclick = () => this.zoom(0.8);
+				elements['zoom-reset'].onclick = () => this.resetZoom();
 
-				elements.mapContainer.addEventListener('wheel', (e) => {
+				elements['map-container'].addEventListener('wheel', (e) => {
 					e.preventDefault();
 					const delta = e.deltaY > 0 ? 0.9 : 1.1;
 					this.zoom(delta);
 				});
 
-				elements.mapContainer.addEventListener('mousedown', (e) => {
+				elements['map-container'].addEventListener('mousedown', (e) => {
 					this.isDragging = true;
 					this.startX = e.clientX - this.translateX;
 					this.startY = e.clientY - this.translateY;
 				});
 
-				elements.mapContainer.addEventListener('mousemove', (e) => {
+				elements['map-container'].addEventListener('mousemove', (e) => {
 					if (!this.isDragging) return;
 					this.translateX = e.clientX - this.startX;
 					this.translateY = e.clientY - this.startY;
@@ -613,11 +613,11 @@ self.onmessage = function(e) {
 					this.updateTransform();
 				});
 
-				elements.mapContainer.addEventListener('mouseup', () => {
+				elements['map-container'].addEventListener('mouseup', () => {
 					this.isDragging = false;
 				});
 
-				elements.mapContainer.addEventListener('mouseleave', () => {
+				elements['map-container'].addEventListener('mouseleave', () => {
 					this.isDragging = false;
 				});
 
@@ -626,8 +626,8 @@ self.onmessage = function(e) {
 				elements.calcDate.valueAsDate = today;
 
 				// Setup canvas overlay
-				const canvas = elements.mapOverlay;
-				const img = elements.mapImage;
+				const canvas = elements['map-overlay'];
+				const img = elements['map-image'];
 
 				img.onload = () => {
 					canvas.width = img.naturalWidth;
@@ -644,8 +644,8 @@ self.onmessage = function(e) {
 			}
 
 			limitPan() {
-				const container = elements.mapContainer;
-				const wrapper = elements.mapWrapper;
+				const container = elements['map-container'];
+				const wrapper = elements['map-wrapper'];
 				const containerWidth = container.offsetWidth;
 				const containerHeight = container.offsetHeight;
 				const scaledWidth = containerWidth * this.scale;
@@ -676,7 +676,7 @@ self.onmessage = function(e) {
 			}
 
 			updateTransform() {
-				elements.mapWrapper.style.transform =
+				elements['map-wrapper'].style.transform =
 					`translate(-50%, -50%) translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale})`;
 			}
 
@@ -847,7 +847,7 @@ self.onmessage = function(e) {
 			}
 
 			zoomToBounds(targetBounds, mapBounds) {
-				const container = elements.mapContainer;
+				const container = elements['map-container'];
 				const containerWidth = container.offsetWidth;
 				const containerHeight = container.offsetHeight;
 
@@ -963,8 +963,8 @@ self.onmessage = function(e) {
 
 			redrawOverlay() {
 				if (!this.currentImageData || !this.lastBounds) return;
-				const canvas = elements.mapOverlay;
-				const img = elements.mapImage;
+				const canvas = elements['map-overlay'];
+				const img = elements['map-image'];
 
 				// Set canvas to match image dimensions
 				canvas.width = img.naturalWidth || img.width;
