@@ -559,53 +559,7 @@ self.onmessage = function(e) {
 	}
 };`;
 
-		const elements = {
-			language: document.getElementById("language"),
-			theme: document.getElementById("theme"),
-			mapTitle: document.getElementById("mapTitle"),
-			dateLabel: document.getElementById("dateLabel"),
-			regionLabel: document.getElementById("regionLabel"),
-			criteriaLabel: document.getElementById("criteriaLabel"),
-			mapDate: document.getElementById("mapDate"),
-			mapRegion: document.getElementById("mapRegion"),
-			mapCriteria: document.getElementById("mapCriteria"),
-			minAlt: document.getElementById("minAlt"),
-			minElong: document.getElementById("minElong"),
-			customCriteriaInputs: document.getElementById("customCriteriaInputs"),
-			renderMap: document.getElementById("renderMap"),
-			mapStatus: document.getElementById("mapStatus"),
-			mapContainer: document.getElementById("map-container"),
-			mapWrapper: document.getElementById("map-wrapper"),
-			mapImage: document.getElementById("map-image"),
-			mapOverlay: document.getElementById("map-overlay"),
-			zoomIn: document.getElementById("zoom-in"),
-			zoomOut: document.getElementById("zoom-out"),
-			zoomReset: document.getElementById("zoom-reset"),
-			tabMap: document.getElementById("tabMap"),
-			tabCalc: document.getElementById("tabCalc"),
-			mapView: document.getElementById("mapView"),
-			calcView: document.getElementById("calcView"),
-			calcDate: document.getElementById("calcDate"),
-			calcLat: document.getElementById("calcLat"),
-			calcLon: document.getElementById("calcLon"),
-			calcUtcOffset: document.getElementById("calcUtcOffset"),
-			calcCriteria: document.getElementById("calcCriteria"),
-			calcMinAlt: document.getElementById("calcMinAlt"),
-			calcMinElong: document.getElementById("calcMinElong"),
-			calcCustomCriteriaInputs: document.getElementById("calcCustomCriteriaInputs"),
-			getLocation: document.getElementById("getLocation"),
-			calculateBtn: document.getElementById("calculateBtn"),
-			results: document.getElementById("results"),
-			calcDateLabel: document.getElementById("calcDateLabel"),
-			latLabel: document.getElementById("latLabel"),
-			lonLabel: document.getElementById("lonLabel"),
-			utcOffsetLabel: document.getElementById("utcOffsetLabel"),
-			calcCriteriaLabel: document.getElementById("calcCriteriaLabel"),
-			minAltLabel: document.getElementById("minAltLabel"),
-			minElongLabel: document.getElementById("minElongLabel"),
-			calcMinAltLabel: document.getElementById("calcMinAltLabel"),
-			calcMinElongLabel: document.getElementById("calcMinElongLabel")
-		};
+		const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
 
 		class HilalMap {
 			constructor() {
