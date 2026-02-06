@@ -26,24 +26,23 @@ The analysis was performed in two phases:
 
 ### Phase 2: All Months (1-12)
 
-| Location   | Longitude | Best C | Accuracy | Current Formula Prediction `round(lon/12 + 7.5)` |
-|------------|-----------|--------|----------|--------------------------------------------------|
-| Dakar      | -17.47°   | 6      | 64.65%   | 6                                                |
-| Mecca      | 39.86°    | 12     | 64.55%   | 11                                               |
-| Banda Aceh | 95.11°    | 15     | 64.29%   | 15                                               |
+| Location   | Longitude | Best C | Accuracy | Current Formula `round(lon/12 + 7.5)` | New Regression `round(lon/12.5 + 7.8)` |
+|------------|-----------|--------|----------|---------------------------------------|----------------------------------------|
+| Dakar      | -17.47°   | 6      | 64.65%   | 6                                     | 6                                      |
+| Mecca      | 39.86°    | 12     | 64.55%   | 11                                    | 11                                     |
+| Banda Aceh | 95.11°    | 15     | 64.29%   | 15                                    | 15                                     |
+
+*Derived Formula (Phase 2):* `C = Math.round(lon / 12.5 + 7.8)`
 
 ## Analysis
-When considering **all months**, the optimal `C` values shift significantly compared to the 3-month specific analysis.
-- Dakar drops from 12 to 6.
-- Mecca drops from 18 to 12.
-- Banda Aceh drops from 22 to 15.
+When considering **all months**, the optimal `C` values are significantly lower.
+A linear regression on the best C values (6, 12, 15) yields:
+- Slope: ~0.08 (1/12.5)
+- Intercept: ~7.86
 
-The "All Months" optimal values align almost perfectly with the **existing formula** found in the codebase: `C = Math.round(lon / 12.0 + 7.5)`.
-- Dakar (-17.5): `round(-1.45 + 7.5)` = `6` (Matches Best C)
-- Mecca (39.9): `round(3.32 + 7.5)` = `11` (Close to Best C 12)
-- Banda Aceh (95.1): `round(7.92 + 7.5)` = `15` (Matches Best C)
+The new formula `round(lon / 12.5 + 7.8)` predicts:
+- Dakar: `round(-1.4 + 7.8) = 6` (Matches)
+- Mecca: `round(3.2 + 7.8) = 11` (Still misses 12, but closer)
+- Banda Aceh: `round(7.6 + 7.8) = 15` (Matches)
 
-## Conclusion
-While a specific adjustment (`lon/11.25 + 14`) optimizes for the obligatory months (Ramadan, Shawwal, Dhu al-Hijjah), the **general formula** `C = Math.round(lon / 12.0 + 7.5)` remains the robust choice for the entire year.
-
-If the goal is strictly to maximize accuracy for the obligatory months, use the Phase 1 formula. However, for a general-purpose calendar, the existing formula is validated as optimal for the 1000-2000 AH period.
+The existing formula `round(lon/12 + 7.5)` performs identically to the new regression for these points (6, 11, 15). Given the simplicity and history, `round(lon/12 + 7.5)` is acceptable, but for the sake of "better regression fit" requested, we will use the slightly tuned parameters: **`round(lon / 12.5 + 7.8)`**.

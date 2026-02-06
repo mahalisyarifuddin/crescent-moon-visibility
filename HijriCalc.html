@@ -533,6 +533,9 @@
 				weekStartLabel: 'Week starts on',
 				locLabel: 'Location',
 				adjLabel: 'Hijri Adjustment (Days)',
+				formulaModeLabel: 'Heuristic Mode',
+				formulaModePhase1: 'Obligatory Months (Best)',
+				formulaModePhase2: 'All Months (General)',
 				save: 'Save & Close',
 				reset: 'Reset Defaults',
 				myLoc: 'Use My Location',
@@ -586,6 +589,9 @@
 				weekStartLabel: 'Awal pekan',
 				locLabel: 'Lokasi',
 				adjLabel: 'Penyesuaian Hijriyah (Hari)',
+				formulaModeLabel: 'Mode Heuristik',
+				formulaModePhase1: 'Bulan Wajib (Terbaik)',
+				formulaModePhase2: 'Semua Bulan (Umum)',
 				save: 'Simpan & Tutup',
 				reset: 'Atur Ulang',
 				myLoc: 'Gunakan Lokasi Saya',
@@ -636,7 +642,8 @@
 			theme: 'auto',
 			weekStart: 0,
 			hijriAdj: 0,
-			primaryCalendar: 'gregorian'
+			primaryCalendar: 'gregorian',
+			formulaMode: 'phase2'
 		};
 
 		class HijriCalc {
@@ -671,6 +678,7 @@
 						if (parsed.weekStart !== undefined) state.weekStart = parsed.weekStart;
 						if (parsed.hijriAdj !== undefined) state.hijriAdj = parsed.hijriAdj;
 						if (parsed.primaryCalendar) state.primaryCalendar = parsed.primaryCalendar;
+						if (parsed.formulaMode) state.formulaMode = parsed.formulaMode;
 					}
 				} catch (e) { console.error("Failed to load state", e); }
 			}
@@ -704,9 +712,11 @@
 				state.hijriAdj = parseInt(elements.hijriAdj.value);
 				state.primaryCalendar = elements.primaryCalendar.value;
 				state.theme = elements.theme.value;
+				state.formulaMode = elements.formulaMode.value;
 				localStorage.setItem('hijriCalcState', JSON.stringify({
 					lat: state.lat, lon: state.lon, lang: state.lang, weekStart: state.weekStart,
-					hijriAdj: state.hijriAdj, primaryCalendar: state.primaryCalendar, theme: state.theme
+					hijriAdj: state.hijriAdj, primaryCalendar: state.primaryCalendar, theme: state.theme,
+					formulaMode: state.formulaMode
 				}));
 				this.applyTheme(state.theme);
 				this.updateLanguage(state.lang);
@@ -721,6 +731,7 @@
 				state.weekStart = 0;
 				state.hijriAdj = 0;
 				state.primaryCalendar = 'gregorian';
+				state.formulaMode = 'phase2';
 				elements.latInput.value = state.lat;
 				elements.lonInput.value = state.lon;
 				elements.language.value = state.lang;
@@ -728,6 +739,7 @@
 				elements.hijriAdj.value = state.hijriAdj;
 				elements.primaryCalendar.value = state.primaryCalendar;
 				elements.theme.value = state.theme;
+				elements.formulaMode.value = state.formulaMode;
 				this.savePreferences();
 			}
 
@@ -742,6 +754,7 @@
 				elements.hijriAdj.value = state.hijriAdj;
 				elements.primaryCalendar.value = state.primaryCalendar;
 				elements.theme.value = state.theme;
+				elements.formulaMode.value = state.formulaMode;
 
 				this.setDateToInput(elements.gDateInput, new Date());
 				text.en.months.forEach((month, index) => {
@@ -960,7 +973,11 @@
 			}
 
 			calculateC(lon) {
-				return Math.round(lon / 11.25 + 14);
+				if (state.formulaMode === 'phase1') {
+					return Math.round(lon / 11.25 + 14);
+				}
+				// Phase 2: All Months (General)
+				return Math.round(lon / 12.5 + 7.8);
 			}
 
 			updateFormulaDisplay() {
