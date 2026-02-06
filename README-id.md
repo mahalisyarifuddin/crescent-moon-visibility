@@ -48,18 +48,18 @@ Alat ini terutama mengimplementasikan kriteria MABBIMS (Menteri Agama Brunei, Da
 -   Titik Perhitungan: Matahari Terbenam (Sunset).
 
 ### Rumus Heuristik (HijriCalc)
-Untuk navigasi cepat dan pendekatan, `HijriCalc` menggunakan algoritma **Tabular yang Dioptimalkan** yang berasal dari simulasi ketat visibilitas MABBIMS untuk tahun **1300-1600 H**.
+Untuk navigasi cepat dan pendekatan, `HijriCalc` menggunakan algoritma **Tabular yang Dioptimalkan** yang berasal dari simulasi ketat visibilitas MABBIMS untuk tahun **1600-2600 M** (kira-kira 1000-2050 H).
 
 Algoritma ini secara dinamis menghitung koefisien `C` berdasarkan bujur pengguna:
 
 `JD = 1948440 + 354(H-1) + floor((11(H-1) + C) / 30)`
 
 Di mana `C` berasal dari:
-`C = round(0,0634 * Bujur + 8,17)`
+`C = round(Bujur / 12 + 6)`
 
 **Akurasi**: Rumus kontinu ini meminimalkan penyimpangan dari prediksi rukyat astronomis di seluruh dunia. Sebagai contoh:
 -   **Banda Aceh (95,1° BT)**: `C = 14`
--   **Mekkah (39,9° BT)**: `C = 11`
+-   **Mekkah (39,9° BT)**: `C = 9`
 
 ### Catatan Teknis: Koefisien C
 Kalender Islam Tabular mengikuti siklus 30 tahun yang berisi 11 tahun kabisat (355 hari) dan 19 tahun basita (354 hari). Distribusi tahun kabisat ini ditentukan oleh suku `floor((11*H + C) / 30)`. Koefisien `C` bertindak sebagai penggeser fase (phase shift), menentukan dengan tepat tahun mana dalam siklus tersebut yang menerima hari tambahan.

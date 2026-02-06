@@ -48,18 +48,18 @@ The tools primarily implement the MABBIMS (Menteri Agama Brunei, Darussalam, Ind
 -   Calculation Point: Sunset.
 
 ### Heuristic Formula (HijriCalc)
-For quick navigation and approximation, `HijriCalc` uses an **Optimized Tabular** algorithm derived from rigorous simulation of MABBIMS visibility for years **1300-1600 AH**.
+For quick navigation and approximation, `HijriCalc` uses an **Optimized Tabular** algorithm derived from rigorous simulation of MABBIMS visibility for years **1600-2600 AD** (approx. 1000-2050 AH).
 
 The algorithm dynamically calculates the `C` coefficient based on the user's longitude:
 
 `JD = 1948440 + 354(H-1) + floor((11(H-1) + C) / 30)`
 
 Where `C` is derived from:
-`C = round(0.0634 * Longitude + 8.17)`
+`C = round(Longitude / 12 + 6)`
 
 **Accuracy**: This continuous formula minimizes deviation from astronomical sighting predictions across the globe. For example:
 -   **Banda Aceh (95.1° E)**: `C = 14`
--   **Mecca (39.9° E)**: `C = 11`
+-   **Mecca (39.9° E)**: `C = 9`
 
 ### Technical Note: The C Coefficient
 The Tabular Islamic calendar follows a 30-year cycle containing 11 leap years (355 days) and 19 common years (354 days). The distribution of these leap years is determined by the term `floor((11*H + C) / 30)`. The coefficient `C` acts as a phase shift, determining exactly which years in the cycle receive the extra day.
