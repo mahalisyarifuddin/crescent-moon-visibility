@@ -25,13 +25,14 @@ Visualize where the new crescent moon is visible on the globe for any given date
 -   **Offline Capable**: Works locally (requires internet only for the map image/CDN).
 
 ### 2. HijriCalc (Calendar & Converter)
-A robust calendar tool focused on the specific coordinates of **Banda Aceh (6°04′30″ N, 95°06′45″ E)**, often used as a reference point for MABBIMS calculations.
+A robust calendar tool focused on two key locations: **Banda Aceh** (default) and **Arafah, Mecca**.
 
 **Key Features:**
 -   **MABBIMS Calendar Grid**: Generates a monthly calendar based on astronomical moon sighting simulation.
--   **Heuristic Converter**: A "Go to Date" feature that synchronizes Gregorian and Hijri dates using an optimized Tabular algorithm (Type II).
+-   **Toggleable Locations**: Switch between Banda Aceh and Arafah to see the calendar relative to either location.
+-   **Optimized Heuristics**: Uses location-specific Tabular algorithms (`C=13` for Aceh, `C=11` for Arafah) for accurate date conversion.
 -   **Navigation**: Jump to any Gregorian or Hijri date to see the corresponding calendar arrangement.
--   **Preferences**: Customize Language, Theme, Week Start Day, and Location.
+-   **Preferences**: Customize Language, Theme, Week Start Day, and Base Location.
 
 ## Quick Start
 1.  Download `HilalMap.html` or `HijriCalc.html`.
@@ -48,11 +49,25 @@ The tools primarily implement the MABBIMS (Menteri Agama Brunei, Darussalam, Ind
 -   Calculation Point: Sunset.
 
 ### Heuristic Formula (HijriCalc)
-For quick navigation and approximation, `HijriCalc` uses the **Tabular Islamic Calendar (Type II)** algorithm (Kuwaiti method). This is an arithmetic approximation that follows a 30-year cycle with 11 leap years.
--   *Formula*: `JD = 1948440 + 354(H-1) + floor((11(H-1) + 14) / 30)`
--   *Simulation & Verification*: Reinstated and verified against astronomical MABBIMS criteria for years **1300-1600 AH**.
-    -   **Observation Point**: Banda Aceh (6°04′30″ N, 95°06′45″ E).
-    -   **Accuracy**: Mean Error ≈ 0 days. Matches visibility in ~67% of months, with +/-1 day difference in others.
+For quick navigation and approximation, `HijriCalc` uses **Optimized Tabular** algorithms derived from rigorous simulation of MABBIMS visibility for years **1300-1600 AH**.
+
+The algorithm switches based on the selected location:
+-   **Banda Aceh**: `JD = 1948440 + 354(H-1) + floor((11(H-1) + 13) / 30)`
+-   **Arafah, Mecca**: `JD = 1948440 + 354(H-1) + floor((11(H-1) + 11) / 30)`
+
+**Accuracy**: Both formulas were found to minimize deviation from astronomical sighting predictions for their respective locations over the 300-year simulation period.
+
+### Technical Note: The C Coefficient
+The Tabular Islamic calendar follows a 30-year cycle containing 11 leap years (355 days) and 19 common years (354 days). The distribution of these leap years is determined by the term `floor((11*H + C) / 30)`. The coefficient `C` acts as a phase shift, determining exactly which years in the cycle receive the extra day.
+
+-   **Standard (Kuwaiti) Algorithm (`C=14`)**:
+    -   Leap Years: 2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29
+-   **Banda Aceh Optimized (`C=13`)**:
+    -   Leap Years: 2, 5, 7, 10, 13, 16, 18, 21, 24, **27**, 29
+    -   *Difference*: Year 26 becomes Year 27.
+-   **Arafah Optimized (`C=11`)**:
+    -   Leap Years: 2, 5, **8**, 10, 13, 16, **19**, 21, 24, **27**, 29
+    -   *Difference*: Shifts occur at years 7→8, 18→19, and 26→27 compared to standard.
 
 ## Privacy & Data
 All astronomical calculations happen locally in your browser using **astronomy-engine**. No location data or usage metrics are sent to any server.

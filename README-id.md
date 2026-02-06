@@ -25,13 +25,14 @@ Visualisasikan di mana hilal terlihat di bola dunia untuk tanggal tertentu.
 -   **Bisa Offline**: Bekerja secara lokal (memerlukan internet hanya untuk gambar peta/CDN).
 
 ### 2. HijriCalc (Kalender & Konverter)
-Alat kalender yang kuat yang berfokus pada koordinat spesifik **Banda Aceh (6°04′30″ LU, 95°06′45″ BT)**, yang sering digunakan sebagai titik referensi perhitungan MABBIMS.
+Alat kalender yang kuat yang berfokus pada dua lokasi utama: **Banda Aceh** (default) dan **Arafah, Mekkah**.
 
 **Fitur Utama:**
 -   **Grid Kalender MABBIMS**: Menghasilkan kalender bulanan berdasarkan simulasi rukyatul hilal astronomis.
--   **Konverter Heuristik**: Fitur "Ke Tanggal" yang menyinkronkan tanggal Masehi dan Hijriyah menggunakan algoritma Tabular (Tipe II) yang dioptimalkan.
+-   **Lokasi Dapat Diganti**: Beralih antara Banda Aceh dan Arafah untuk melihat kalender relatif terhadap salah satu lokasi.
+-   **Heuristik Optimal**: Menggunakan algoritma Tabular spesifik lokasi (`C=13` untuk Aceh, `C=11` untuk Arafah) untuk konversi tanggal yang akurat.
 -   **Navigasi**: Lompat ke tanggal Masehi atau Hijriyah mana pun untuk melihat susunan kalender yang sesuai.
--   **Pengaturan**: Sesuaikan Bahasa, Tema, Awal Pekan, dan Lokasi.
+-   **Pengaturan**: Sesuaikan Bahasa, Tema, Awal Pekan, dan Lokasi Basis.
 
 ## Cara Menggunakan
 1.  Unduh `HilalMap.html` atau `HijriCalc.html`.
@@ -48,11 +49,25 @@ Alat ini terutama mengimplementasikan kriteria MABBIMS (Menteri Agama Brunei, Da
 -   Titik Perhitungan: Matahari Terbenam (Sunset).
 
 ### Rumus Heuristik (HijriCalc)
-Untuk navigasi cepat dan pendekatan, `HijriCalc` menggunakan algoritma **Kalender Islam Tabular (Tipe II)** (Metode Kuwait). Ini adalah pendekatan aritmatika yang mengikuti siklus 30 tahun dengan 11 tahun kabisat.
--   *Rumus*: `JD = 1948440 + 354(H-1) + floor((11(H-1) + 14) / 30)`
--   *Simulasi & Verifikasi*: Dikembalikan dan diverifikasi terhadap kriteria astronomis MABBIMS untuk tahun **1300-1600 H**.
-    -   **Titik Observasi**: Banda Aceh (6°04′30″ LU, 95°06′45″ BT).
-    -   **Akurasi**: Rata-rata Kesalahan ≈ 0 hari. Cocok dengan visibilitas di ~67% bulan, dengan perbedaan +/-1 hari di bulan lainnya.
+Untuk navigasi cepat dan pendekatan, `HijriCalc` menggunakan algoritma **Tabular yang Dioptimalkan** yang berasal dari simulasi ketat visibilitas MABBIMS untuk tahun **1300-1600 H**.
+
+Algoritma beralih berdasarkan lokasi yang dipilih:
+-   **Banda Aceh**: `JD = 1948440 + 354(H-1) + floor((11(H-1) + 13) / 30)`
+-   **Arafah, Mekkah**: `JD = 1948440 + 354(H-1) + floor((11(H-1) + 11) / 30)`
+
+**Akurasi**: Kedua rumus ditemukan meminimalkan penyimpangan dari prediksi rukyat astronomis untuk lokasi masing-masing selama periode simulasi 300 tahun.
+
+### Catatan Teknis: Koefisien C
+Kalender Islam Tabular mengikuti siklus 30 tahun yang berisi 11 tahun kabisat (355 hari) dan 19 tahun basita (354 hari). Distribusi tahun kabisat ini ditentukan oleh suku `floor((11*H + C) / 30)`. Koefisien `C` bertindak sebagai penggeser fase (phase shift), menentukan dengan tepat tahun mana dalam siklus tersebut yang menerima hari tambahan.
+
+-   **Algoritma Standar (Kuwaiti) (`C=14`)**:
+    -   Tahun Kabisat: 2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29
+-   **Optimasi Banda Aceh (`C=13`)**:
+    -   Tahun Kabisat: 2, 5, 7, 10, 13, 16, 18, 21, 24, **27**, 29
+    -   *Perbedaan*: Tahun 26 menjadi Tahun 27.
+-   **Optimasi Arafah (`C=11`)**:
+    -   Tahun Kabisat: 2, 5, **8**, 10, 13, 16, **19**, 21, 24, **27**, 29
+    -   *Perbedaan*: Pergeseran terjadi pada tahun 7→8, 18→19, dan 26→27 dibandingkan standar.
 
 ## Privasi & Data
 Semua perhitungan astronomis terjadi secara lokal di peramban Anda menggunakan **astronomy-engine**. Tidak ada data lokasi atau metrik penggunaan yang dikirim ke server mana pun.
