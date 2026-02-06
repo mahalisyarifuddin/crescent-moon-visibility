@@ -57,6 +57,18 @@ The algorithm switches based on the selected location:
 
 **Accuracy**: Both formulas were found to minimize deviation from astronomical sighting predictions for their respective locations over the 300-year simulation period.
 
+### Technical Note: The C Coefficient
+The Tabular Islamic calendar follows a 30-year cycle containing 11 leap years (355 days) and 19 common years (354 days). The distribution of these leap years is determined by the term `floor((11*H + C) / 30)`. The coefficient `C` acts as a phase shift, determining exactly which years in the cycle receive the extra day.
+
+-   **Standard (Kuwaiti) Algorithm (`C=14`)**:
+    -   Leap Years: 2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29
+-   **Banda Aceh Optimized (`C=13`)**:
+    -   Leap Years: 2, 5, 7, 10, 13, 16, 18, 21, 24, **27**, 29
+    -   *Difference*: Year 26 becomes Year 27.
+-   **Arafah Optimized (`C=11`)**:
+    -   Leap Years: 2, 5, **8**, 10, 13, 16, **19**, 21, 24, **27**, 29
+    -   *Difference*: Shifts occur at years 7→8, 18→19, and 26→27 compared to standard.
+
 ## Privacy & Data
 All astronomical calculations happen locally in your browser using **astronomy-engine**. No location data or usage metrics are sent to any server.
 

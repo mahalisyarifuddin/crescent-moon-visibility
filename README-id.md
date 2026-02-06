@@ -57,6 +57,18 @@ Algoritma beralih berdasarkan lokasi yang dipilih:
 
 **Akurasi**: Kedua rumus ditemukan meminimalkan penyimpangan dari prediksi rukyat astronomis untuk lokasi masing-masing selama periode simulasi 300 tahun.
 
+### Catatan Teknis: Koefisien C
+Kalender Islam Tabular mengikuti siklus 30 tahun yang berisi 11 tahun kabisat (355 hari) dan 19 tahun basita (354 hari). Distribusi tahun kabisat ini ditentukan oleh suku `floor((11*H + C) / 30)`. Koefisien `C` bertindak sebagai penggeser fase (phase shift), menentukan dengan tepat tahun mana dalam siklus tersebut yang menerima hari tambahan.
+
+-   **Algoritma Standar (Kuwaiti) (`C=14`)**:
+    -   Tahun Kabisat: 2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29
+-   **Optimasi Banda Aceh (`C=13`)**:
+    -   Tahun Kabisat: 2, 5, 7, 10, 13, 16, 18, 21, 24, **27**, 29
+    -   *Perbedaan*: Tahun 26 menjadi Tahun 27.
+-   **Optimasi Arafah (`C=11`)**:
+    -   Tahun Kabisat: 2, 5, **8**, 10, 13, 16, **19**, 21, 24, **27**, 29
+    -   *Perbedaan*: Pergeseran terjadi pada tahun 7→8, 18→19, dan 26→27 dibandingkan standar.
+
 ## Privasi & Data
 Semua perhitungan astronomis terjadi secara lokal di peramban Anda menggunakan **astronomy-engine**. Tidak ada data lokasi atau metrik penggunaan yang dikirim ke server mana pun.
 
