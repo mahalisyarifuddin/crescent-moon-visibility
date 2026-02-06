@@ -7,6 +7,7 @@ const locations = [
 ];
 
 const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; // All months
+const obligMonths = [9, 10, 12];
 const startYear = 1000;
 const endYear = 2000;
 
@@ -49,12 +50,6 @@ function getTimezoneOffset(lon) {
 function checkVisibility(dateObj, knownNewMoonUT, lat, lon) {
     const utcOffset = getTimezoneOffset(lon);
     // Construct baseUTC at 12:00 Local Time (approx sunset check time frame)
-    // We want 12:00 Local, so we subtract offset from UTC.
-    // If offset is +7, 12:00 Local is 05:00 UTC.
-    // dateObj is expected to be a Date object representing the day (e.g. at 00:00 UTC or Local?).
-    // In getHijriMonthStart, we construct checkDate from NewMoon shifted to local.
-
-    // We can just use the dateObj (which is YMD) and set hours.
     const baseUTC = new Date(dateObj);
     baseUTC.setUTCHours(12 - utcOffset);
 
@@ -71,7 +66,6 @@ function checkVisibility(dateObj, knownNewMoonUT, lat, lon) {
     let newMoonUT = knownNewMoonUT;
     if (newMoonUT === undefined || newMoonUT === null) {
         // Find New Moon near this date
-        // Search center around the check time
         const bestNewMoon = Astronomy.SearchMoonPhase(0, date.ut, -35);
         if (!bestNewMoon) return false;
         newMoonUT = bestNewMoon.ut;
@@ -89,8 +83,6 @@ function formatDate(date) {
 
 function getHijriMonthStart(hYear, hMonth, lat, lon) {
     // 1. Approximate start
-    // Using a fixed C=0 for approximation or just standard
-    // Use the logic from HijriCalc to get close
     // anchor: 1445-01 approx 2023-07-19
     const daysSinceAnchor = ((hYear - 1445) * 354.367) + (hMonth * 29.53);
     const anchorDate = new Date("2023-07-19T12:00:00Z");
@@ -102,18 +94,15 @@ function getHijriMonthStart(hYear, hMonth, lat, lon) {
     const timeStart = Astronomy.MakeTime(searchStart);
     let bestNewMoon = Astronomy.SearchMoonPhase(0, timeStart.ut, 10);
 
-    // If fail, fallback to approx (shouldn't happen in this range)
     if (!bestNewMoon) return formatDate(approxDate);
 
     const newMoonDate = bestNewMoon.date; // This is a Date object derived from UT
     const utcOffset = getTimezoneOffset(lon);
 
     // Shift to local time to determine "Day of New Moon"
-    // We clone it to avoid mutating if it matters
     const localNM = new Date(newMoonDate.getTime() + utcOffset * 3600000);
 
     // checkDate is the day of New Moon in Local Time
-    // We construct it as UTC YMD to avoid system timezone issues
     const checkDate = new Date(Date.UTC(localNM.getUTCFullYear(), localNM.getUTCMonth(), localNM.getUTCDate()));
 
     const isVisible = checkVisibility(checkDate, bestNewMoon.ut, lat, lon);
@@ -125,8 +114,8 @@ function getHijriMonthStart(hYear, hMonth, lat, lon) {
 }
 
 async function main() {
-    console.log(`Analyzing years ${startYear}-${endYear} AH for months: ${months.join(', ')}`);
-    console.log(`Locations: ${locations.map(l => l.name).join(', ')}`);
+    console.log(`Analyzing years ${startYear}-${endYear} AH`);
+    console.log('Calculating dual accuracy rates: All Months vs Obligatory Months (9, 10, 12)');
     console.log('---');
 
     for (const loc of locations) {
@@ -134,7 +123,7 @@ async function main() {
 
         let groundTruths = [];
 
-        // Calculate Ground Truths
+        // Calculate Ground Truths for ALL months
         for (let y = startYear; y <= endYear; y++) {
             for (const m of months) {
                 const gt = getHijriMonthStart(y, m, loc.lat, loc.lon);
@@ -142,38 +131,47 @@ async function main() {
             }
         }
 
-        // Optimize C
-        let bestC = -100;
-        let bestAccuracy = -1;
-        let results = [];
+        let bestCAll = -100;
+        let maxAccAll = -1;
+        let bestCOblig = -100;
+        let maxAccOblig = -1;
+
+        let summary = [];
 
         for (let C = -15; C <= 30; C++) {
-            let matches = 0;
+            let matchesAll = 0;
+            let totalAll = 0;
+            let matchesOblig = 0;
+            let totalOblig = 0;
+
             for (const item of groundTruths) {
                 const tabDate = hijriToGregorianTabular(item.y, item.m, 1, C);
                 const tabStr = formatDate(tabDate);
-                if (tabStr === item.gt) {
-                    matches++;
+
+                totalAll++;
+                if (tabStr === item.gt) matchesAll++;
+
+                if (obligMonths.includes(item.m)) {
+                    totalOblig++;
+                    if (tabStr === item.gt) matchesOblig++;
                 }
             }
-            const accuracy = (matches / groundTruths.length) * 100;
-            results.push({ C, accuracy });
+            const accAll = (matchesAll / totalAll) * 100;
+            const accOblig = (matchesOblig / totalOblig) * 100;
 
-            if (accuracy > bestAccuracy) {
-                bestAccuracy = accuracy;
-                bestC = C;
-            }
+            summary.push({ C, accAll, accOblig });
+
+            if (accAll > maxAccAll) { maxAccAll = accAll; bestCAll = C; }
+            if (accOblig > maxAccOblig) { maxAccOblig = accOblig; bestCOblig = C; }
         }
 
-        // Find all C with best accuracy
-        const bestCs = results.filter(r => Math.abs(r.accuracy - bestAccuracy) < 0.001).map(r => r.C);
-        // If multiple, pick the one closest to current formula prediction or median
-        // Current formula: round(lon/12 + 7.5)
-        const currentFormulaC = calculateC(loc.lon);
+        // Find stats for best All
+        const bestAllStats = summary.find(s => s.C === bestCAll);
+        // Find stats for best Oblig
+        const bestObligStats = summary.find(s => s.C === bestCOblig);
 
-        console.log(`Best Accuracy: ${bestAccuracy.toFixed(2)}%`);
-        console.log(`Best C values: ${bestCs.join(', ')}`);
-        console.log(`Current Formula C: ${currentFormulaC}`);
+        console.log(`Best C (All Months): ${bestCAll} (Acc: ${bestAllStats.accAll.toFixed(2)}%, Oblig Acc: ${bestAllStats.accOblig.toFixed(2)}%)`);
+        console.log(`Best C (Obligatory): ${bestCOblig} (Acc: ${bestObligStats.accAll.toFixed(2)}%, Oblig Acc: ${bestObligStats.accOblig.toFixed(2)}%)`);
         console.log('---');
     }
 }
