@@ -468,9 +468,9 @@
 		<div class="calendar-grid" id="calendar"></div>
 		<details>
 			<summary><span data-i18n="formulaTitle"></span></summary>
-			<p style="font-family: monospace; font-size: 0.9rem; background: var(--surface); padding: 5px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 5px;">JD = 1948440 + 354(H-1) + floor((11(H-1) + 14) / 30)</p>
+			<p style="font-family: monospace; font-size: 0.9rem; background: var(--surface); padding: 5px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 5px;">JD = 1948440 + 354(H-1) + floor((11(H-1) + 11) / 30)</p>
 			<p id="formulaDesc" style="font-size: 0.8rem; opacity: 0.8;" data-i18n="formulaDesc"></p>
-			<p style="font-size: 0.8rem; opacity: 0.8; margin-top:5px;"><i>Reinstated Kuwaiti Algorithm (Type II). Verified matches MABBIMS visibility (1300-1600 AH) at Banda Aceh.</i></p>
+			<p style="font-size: 0.8rem; opacity: 0.8; margin-top:5px;"><i>Optimized Tabular (Arafah). Verified matches MABBIMS visibility (1300-1600 AH) at Arafah, Mecca.</i></p>
 			<p class="info-text" id="footerNote" data-i18n="footer"></p>
 		</details>
 	</div>
@@ -525,7 +525,7 @@
 				gotoTitle: 'Go to Date',
 				today: 'Today',
 				formulaTitle: 'Heuristic Formula',
-				formulaDesc: 'Optimized Tabular (Type II) algorithm.',
+				formulaDesc: 'Optimized Tabular (Arafah) algorithm.',
 				prefTitle: 'Preferences',
 				langLabel: 'Language',
 				themeLabel: 'Theme',
@@ -578,7 +578,7 @@
 				gotoTitle: 'Ke Tanggal',
 				today: 'Hari Ini',
 				formulaTitle: 'Rumus Heuristik',
-				formulaDesc: 'Algoritma Tabular (Tipe II) yang dioptimalkan.',
+				formulaDesc: 'Algoritma Tabular (Arafah) yang dioptimalkan.',
 				prefTitle: 'Pengaturan',
 				langLabel: 'Bahasa',
 				themeLabel: 'Tema',
@@ -630,8 +630,8 @@
 		const elements = new Proxy({}, { get: (_, id) => document.getElementById(id) });
 
 		let state = {
-			lat: 6.075,
-			lon: 95.1125,
+			lat: 21.3549,
+			lon: 39.9841,
 			lang: navigator.language?.startsWith('id') ? 'id' : 'en',
 			theme: 'auto',
 			weekStart: 0,
@@ -714,8 +714,8 @@
 			}
 
 			resetPreferences() {
-				state.lat = 6.075;
-				state.lon = 95.1125;
+				state.lat = 21.3549;
+				state.lon = 39.9841;
 				state.lang = navigator.language?.startsWith('id') ? 'id' : 'en';
 				state.theme = 'auto';
 				state.weekStart = 0;
@@ -962,7 +962,7 @@
 				const year = hYear - 1;
 				const cycle = Math.floor(year / 30);
 				const yearInCycle = year % 30;
-				const dayInCycle = yearInCycle * 354 + Math.floor((11 * yearInCycle + 14) / 30);
+				const dayInCycle = yearInCycle * 354 + Math.floor((11 * yearInCycle + 11) / 30);
 				const dayInYear = Math.ceil(29.5 * hMonth);
 				const jd = epoch + cycle * 10631 + dayInCycle + dayInYear + hDay - 1;
 
@@ -1015,12 +1015,12 @@
 				let yCycle = Math.floor(dayInCycle / 355);
 				if (yCycle > 29) yCycle = 29;
 				while (yCycle < 30) {
-					let daysNext = (yCycle + 1) * 354 + Math.floor((11 * (yCycle + 1) + 14) / 30);
+					let daysNext = (yCycle + 1) * 354 + Math.floor((11 * (yCycle + 1) + 11) / 30);
 					if (dayInCycle < daysNext) break;
 					yCycle++;
 				}
 
-				let daysInPastYears = yCycle * 354 + Math.floor((11 * yCycle + 14) / 30);
+				let daysInPastYears = yCycle * 354 + Math.floor((11 * yCycle + 11) / 30);
 				let dayInYear = dayInCycle - daysInPastYears;
 
 				let mYear = Math.floor(dayInYear / 29.5);

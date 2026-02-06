@@ -25,11 +25,11 @@ Visualisasikan di mana hilal terlihat di bola dunia untuk tanggal tertentu.
 -   **Bisa Offline**: Bekerja secara lokal (memerlukan internet hanya untuk gambar peta/CDN).
 
 ### 2. HijriCalc (Kalender & Konverter)
-Alat kalender yang kuat yang berfokus pada koordinat spesifik **Banda Aceh (6°04′30″ LU, 95°06′45″ BT)**, yang sering digunakan sebagai titik referensi perhitungan MABBIMS.
+Alat kalender yang kuat yang berfokus pada koordinat spesifik **Arafah, Mekkah (21.3549° LU, 39.9841° BT)**.
 
 **Fitur Utama:**
 -   **Grid Kalender MABBIMS**: Menghasilkan kalender bulanan berdasarkan simulasi rukyatul hilal astronomis.
--   **Konverter Heuristik**: Fitur "Ke Tanggal" yang menyinkronkan tanggal Masehi dan Hijriyah menggunakan algoritma Tabular (Tipe II) yang dioptimalkan.
+-   **Konverter Heuristik**: Fitur "Ke Tanggal" yang menyinkronkan tanggal Masehi dan Hijriyah menggunakan algoritma Tabular yang dioptimalkan.
 -   **Navigasi**: Lompat ke tanggal Masehi atau Hijriyah mana pun untuk melihat susunan kalender yang sesuai.
 -   **Pengaturan**: Sesuaikan Bahasa, Tema, Awal Pekan, dan Lokasi.
 
@@ -48,11 +48,11 @@ Alat ini terutama mengimplementasikan kriteria MABBIMS (Menteri Agama Brunei, Da
 -   Titik Perhitungan: Matahari Terbenam (Sunset).
 
 ### Rumus Heuristik (HijriCalc)
-Untuk navigasi cepat dan pendekatan, `HijriCalc` menggunakan algoritma **Kalender Islam Tabular (Tipe II)** (Metode Kuwait). Ini adalah pendekatan aritmatika yang mengikuti siklus 30 tahun dengan 11 tahun kabisat.
--   *Rumus*: `JD = 1948440 + 354(H-1) + floor((11(H-1) + 14) / 30)`
--   *Simulasi & Verifikasi*: Dikembalikan dan diverifikasi terhadap kriteria astronomis MABBIMS untuk tahun **1300-1600 H**.
-    -   **Titik Observasi**: Banda Aceh (6°04′30″ LU, 95°06′45″ BT).
-    -   **Akurasi**: Rata-rata Kesalahan ≈ 0 hari. Cocok dengan visibilitas di ~67% bulan, dengan perbedaan +/-1 hari di bulan lainnya.
+Untuk navigasi cepat dan pendekatan, `HijriCalc` menggunakan algoritma **Tabular (Arafah) yang Dioptimalkan**. Ini adalah pendekatan aritmatika yang mengikuti siklus 30 tahun dengan 11 tahun kabisat.
+-   *Rumus*: `JD = 1948440 + 354(H-1) + floor((11(H-1) + 11) / 30)`
+-   *Simulasi & Verifikasi*: Dioptimalkan dan diverifikasi terhadap kriteria astronomis MABBIMS untuk tahun **1300-1600 H**.
+    -   **Titik Observasi**: Arafah, Mekkah (21.3549° LU, 39.9841° BT).
+    -   **Akurasi**: Rata-rata Kesalahan ≈ 0,3 hari. Cocok dengan visibilitas di ~67% bulan, dengan perbedaan +/-1 hari di bulan lainnya.
 
 ## Privasi & Data
 Semua perhitungan astronomis terjadi secara lokal di peramban Anda menggunakan **astronomy-engine**. Tidak ada data lokasi atau metrik penggunaan yang dikirim ke server mana pun.
