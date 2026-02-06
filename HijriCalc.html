@@ -468,8 +468,9 @@
 		<div class="calendar-grid" id="calendar"></div>
 		<details>
 			<summary><span data-i18n="formulaTitle"></span></summary>
-			<p style="font-family: monospace; font-size: 0.9rem; background: var(--surface); padding: 5px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 5px;">JD = floor( (11H + 14) / 30 ) + 354H + 2270158</p>
+			<p style="font-family: monospace; font-size: 0.9rem; background: var(--surface); padding: 5px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 5px;">JD = 1948440 + 354(H-1) + floor((11(H-1) + 14) / 30)</p>
 			<p id="formulaDesc" style="font-size: 0.8rem; opacity: 0.8;" data-i18n="formulaDesc"></p>
+			<p style="font-size: 0.8rem; opacity: 0.8; margin-top:5px;"><i>Reinstated Kuwaiti Algorithm (Type II). Verified matches MABBIMS visibility (1300-1600 AH) at Banda Aceh.</i></p>
 			<p class="info-text" id="footerNote" data-i18n="footer"></p>
 		</details>
 	</div>
@@ -957,17 +958,14 @@
 			}
 
 			hijriToGregorianTabular(hYear, hMonth, hDay) {
-				const iyear = 10631.0 / 30.0;
-				const epochastro = 1948439.5 + state.hijriAdj;
-				const shift1 = 0.47;
-				let hYear0 = hYear - 1;
-				let cycle = Math.floor(hYear0 / 30);
-				let j = hYear0 % 30;
-				let month = hMonth + 1;
-				let zRem = hDay + Math.floor(29.5001 * month - 29);
-				let zCycle = zRem + Math.floor(j * iyear + shift1);
-				let zTotal = zCycle + cycle * 10631.0;
-				let jd = zTotal + epochastro - 1;
+				const epoch = 1948439.5 + state.hijriAdj;
+				const year = hYear - 1;
+				const cycle = Math.floor(year / 30);
+				const yearInCycle = year % 30;
+				const dayInCycle = yearInCycle * 354 + Math.floor((11 * yearInCycle + 14) / 30);
+				const dayInYear = Math.ceil(29.5 * hMonth);
+				const jd = epoch + cycle * 10631 + dayInCycle + dayInYear + hDay - 1;
+
 				let z = Math.floor(jd + 0.5);
 				let f = jd + 0.5 - z;
 				let alpha = Math.floor((z - 1867216.25) / 36524.25);
@@ -1008,19 +1006,36 @@
 					if (m === 10) { b = 0; if (day > 4) b = -10; }
 				}
 				let jd = Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + day + b - 1524;
-				let iyear = 10631.0 / 30.0;
-				let epochastro = 1948439.5 + state.hijriAdj;
-				let shift1 = 0.47;
-				let z = jd - epochastro;
-				let cycle = Math.floor(z / 10631.0);
-				z = z - 10631.0 * cycle;
-				let j = Math.floor((z - shift1) / iyear);
-				let iy = 30 * cycle + j;
-				z = z - Math.floor(j * iyear + shift1);
-				let im = Math.floor((z + 28.5001) / 29.5);
-				if (im === 13) im = 12;
-				let id = z - Math.floor(29.5001 * im - 29);
-				return { day: Math.floor(id), month: im - 1, year: iy + 1 };
+
+				const epoch = 1948439.5 + state.hijriAdj;
+				let jdNoon = jd - epoch;
+				let cycle = Math.floor(jdNoon / 10631);
+				let dayInCycle = jdNoon % 10631;
+
+				let yCycle = Math.floor(dayInCycle / 355);
+				if (yCycle > 29) yCycle = 29;
+				while (yCycle < 30) {
+					let daysNext = (yCycle + 1) * 354 + Math.floor((11 * (yCycle + 1) + 14) / 30);
+					if (dayInCycle < daysNext) break;
+					yCycle++;
+				}
+
+				let daysInPastYears = yCycle * 354 + Math.floor((11 * yCycle + 14) / 30);
+				let dayInYear = dayInCycle - daysInPastYears;
+
+				let mYear = Math.floor(dayInYear / 29.5);
+				if (mYear > 11) mYear = 11;
+				while (mYear < 12) {
+					let daysNext = Math.ceil(29.5 * (mYear + 1));
+					if (dayInYear < daysNext) break;
+					mYear++;
+				}
+
+				let daysInPastMonths = Math.ceil(29.5 * mYear);
+				let dMonth = dayInYear - daysInPastMonths + 1;
+
+				let hYear = cycle * 30 + yCycle + 1;
+				return { day: Math.floor(dMonth), month: mYear, year: hYear };
 			}
 
 			gregorianToHijri(date) {

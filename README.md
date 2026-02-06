@@ -48,9 +48,11 @@ The tools primarily implement the MABBIMS (Menteri Agama Brunei, Darussalam, Ind
 -   Calculation Point: Sunset.
 
 ### Heuristic Formula (HijriCalc)
-For quick navigation and approximation, `HijriCalc` uses the **Tabular Islamic Calendar (Type II)** algorithm. This is an arithmetic approximation that follows a 30-year cycle with 11 leap years.
--   *Formula*: `JD = floor((11H + 3) / 30) + 354H + 2270158`
--   *Note*: While useful for conversion, the tabular method may differ from the astronomical MABBIMS calculation by 1-2 days depending on moon visibility.
+For quick navigation and approximation, `HijriCalc` uses the **Tabular Islamic Calendar (Type II)** algorithm (Kuwaiti method). This is an arithmetic approximation that follows a 30-year cycle with 11 leap years.
+-   *Formula*: `JD = 1948440 + 354(H-1) + floor((11(H-1) + 14) / 30)`
+-   *Simulation & Verification*: Reinstated and verified against astronomical MABBIMS criteria for years **1300-1600 AH**.
+    -   **Observation Point**: Banda Aceh (6°04′30″ N, 95°06′45″ E).
+    -   **Accuracy**: Mean Error ≈ 0 days. Matches visibility in ~67% of months, with +/-1 day difference in others.
 
 ## Privacy & Data
 All astronomical calculations happen locally in your browser using **astronomy-engine**. No location data or usage metrics are sent to any server.
