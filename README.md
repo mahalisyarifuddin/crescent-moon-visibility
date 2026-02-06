@@ -59,8 +59,14 @@ Where `C` is derived from:
 
 **Accuracy**: This continuous formula minimizes deviation from astronomical sighting predictions across the globe. For example:
 -   **Banda Aceh (95.1° E)**: `C = 15`
--   **Mecca (39.9° E)**: `C = 11`
+-   **Mecca (39.9° E)**: `C = 12`
 -   **Dakar (17.5° W)**: `C = 6`
+
+**Heuristic Mode**: HijriCalc now supports two optimization modes for the coefficient `C`.
+1.  **Phase 1 (Obligatory Months)**: Optimized for maximum accuracy during Ramadan, Shawwal, and Dhu al-Hijjah. Formula: `C = round(lon/11.25 + 14)`.
+2.  **Phase 2 (All Months)**: (Default) Optimized for the best average accuracy across the entire Hijri year. Formula: `C = round(lon/12.5 + 7.8)`.
+
+See [analysis_report.md](analysis_report.md) for detailed accuracy comparisons.
 
 ### Technical Note: The C Coefficient
 The Tabular Islamic calendar follows a 30-year cycle containing 11 leap years (355 days) and 19 common years (354 days). The distribution of these leap years is determined by the term `floor((11*H + C) / 30)`. The coefficient `C` acts as a phase shift, determining exactly which years in the cycle receive the extra day.
