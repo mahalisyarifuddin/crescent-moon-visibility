@@ -29,7 +29,7 @@ Alat kalender yang kuat yang menyesuaikan perhitungannya dengan lokasi spesifik 
 
 **Fitur Utama:**
 -   **Grid Kalender MABBIMS**: Menghasilkan kalender bulanan berdasarkan simulasi rukyatul hilal astronomis.
--   **Heuristik Dinamis**: Secara otomatis menghitung koefisien Tabular (`C`) yang optimal berdasarkan bujur Anda (misal `C=14` untuk Aceh, `C=11` untuk Mekkah) untuk konversi tanggal yang akurat.
+-   **Heuristik Dinamis**: Secara otomatis menghitung koefisien Tabular (`C`) yang optimal berdasarkan bujur Anda (misal `C=14` untuk Aceh, `C=9` untuk Mekkah) untuk konversi tanggal yang akurat.
 -   **Navigasi**: Lompat ke tanggal Masehi atau Hijriyah mana pun untuk melihat susunan kalender yang sesuai.
 -   **Pengaturan**: Sesuaikan Bahasa, Tema, Awal Pekan, dan Lokasi.
 

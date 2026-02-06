@@ -29,7 +29,7 @@ A robust calendar tool that adapts its calculations to your specific location.
 
 **Key Features:**
 -   **MABBIMS Calendar Grid**: Generates a monthly calendar based on astronomical moon sighting simulation.
--   **Dynamic Heuristics**: Automatically calculates the optimal Tabular coefficient (`C`) based on your longitude (e.g., `C=14` for Aceh, `C=11` for Mecca) for accurate date conversion.
+-   **Dynamic Heuristics**: Automatically calculates the optimal Tabular coefficient (`C`) based on your longitude (e.g., `C=14` for Aceh, `C=9` for Mecca) for accurate date conversion.
 -   **Navigation**: Jump to any Gregorian or Hijri date to see the corresponding calendar arrangement.
 -   **Preferences**: Customize Language, Theme, Week Start Day, and Location.
 
