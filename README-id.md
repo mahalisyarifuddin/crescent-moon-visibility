@@ -68,7 +68,7 @@ Di mana `C` secara default (Fase 2) berasal dari:
 1.  **Fase 1 (Bulan Wajib)**: Dioptimalkan untuk akurasi maksimal selama Ramadhan, Syawal, dan Dzulhijjah (meningkatkan akurasi sekitar 4-5% untuk bulan-bulan ini). Rumus: `C = round(bujur/11,2455 + 13,8504)`.
 2.  **Fase 2 (Semua Bulan)**: (Default) Dioptimalkan untuk akurasi rata-rata terbaik sepanjang tahun Hijriyah (meningkatkan akurasi umum sekitar 3-4%). Rumus: `C = round(bujur/12,4848 + 7,8628)`.
 
-Lihat [analysis_report.md](analysis_report.md) untuk perbandingan akurasi detail.
+Lihat [analysis_report-id.md](analysis_report-id.md) untuk perbandingan akurasi detail.
 
 ### Catatan Teknis: Koefisien C
 Kalender Islam Tabular mengikuti siklus 30 tahun yang berisi 11 tahun kabisat (355 hari) dan 19 tahun basita (354 hari). Distribusi tahun kabisat ini ditentukan oleh suku `floor((11*H + C) / 30)`. Koefisien `C` bertindak sebagai penggeser fase (phase shift), menentukan dengan tepat tahun mana dalam siklus tersebut yang menerima hari tambahan.
