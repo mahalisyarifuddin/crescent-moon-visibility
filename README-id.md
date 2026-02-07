@@ -56,19 +56,19 @@ Algoritma ini secara dinamis menghitung koefisien `C` berdasarkan bujur pengguna
 
 `JD = 1948440 + 354(H-1) + floor((11(H-1) + C) / 30)`
 
-Di mana `C` secara default (Fase 2) berasal dari:
-`C = round(Bujur / 12,5 + 7,8)`
+Di mana `C` secara default (Fase 1) berasal dari:
+`C = round(Bujur / 12,5 + 17,4)`
 
 **Akurasi**: Algoritma ini beradaptasi dengan lokasi dan mode optimasi. Sebagai contoh:
--   **Banda Aceh (95,1° BT)**: `C = 15` (Umum) atau `22` (Wajib)
--   **Mekkah (39,9° BT)**: `C = 11` (Umum) atau `18` (Wajib)
--   **Dakar (17,5° BB)**: `C = 6` (Umum) atau `12` (Wajib)
+-   **Banda Aceh (95,1° BT)**: `C = 20` (Umum) atau `25` (Wajib)
+-   **Mekkah (39,9° BT)**: `C = 16` (Umum) atau `22` (Wajib)
+-   **Dakar (17,5° BB)**: `C = 11` (Umum) atau `16` (Wajib)
 
 **Mode Heuristik**: HijriCalc kini mendukung dua mode optimasi untuk koefisien `C`.
-1.  **Fase 1 (Bulan Wajib)**: Dioptimalkan untuk akurasi maksimal selama Ramadhan, Syawal, dan Dzulhijjah (meningkatkan akurasi sekitar 4-5% untuk bulan-bulan ini). Rumus: `C = round(bujur/11,25 + 14)`.
-2.  **Fase 2 (Semua Bulan)**: (Default) Dioptimalkan untuk akurasi rata-rata terbaik sepanjang tahun Hijriyah (meningkatkan akurasi umum sekitar 3-4%). Rumus: `C = round(bujur/12,5 + 7,8)`.
+1.  **Fase 1 (Bulan Wajib)**: (Default) Dioptimalkan untuk akurasi maksimal selama Ramadhan, Syawal, dan Dzulhijjah (meningkatkan akurasi sekitar 4-5% untuk bulan-bulan ini). Rumus: `C = round(bujur/12,5 + 17,4)`.
+2.  **Fase 2 (Semua Bulan)**: Dioptimalkan untuk akurasi rata-rata terbaik sepanjang tahun Hijriyah (meningkatkan akurasi umum sekitar 3-4%). Rumus: `C = round(bujur/12,5 + 12,4)`.
 
-Lihat [analysis_report.md](analysis_report.md) untuk perbandingan akurasi detail.
+Lihat [analysis_report-id.md](analysis_report-id.md) untuk perbandingan akurasi detail.
 
 ### Catatan Teknis: Koefisien C
 Kalender Islam Tabular mengikuti siklus 30 tahun yang berisi 11 tahun kabisat (355 hari) dan 19 tahun basita (354 hari). Distribusi tahun kabisat ini ditentukan oleh suku `floor((11*H + C) / 30)`. Koefisien `C` bertindak sebagai penggeser fase (phase shift), menentukan dengan tepat tahun mana dalam siklus tersebut yang menerima hari tambahan.
