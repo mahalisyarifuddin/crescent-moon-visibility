@@ -1517,22 +1517,10 @@
 					return false;
 				};
 
-				let res = false;
-				if (buffer === 0) {
-					res = checkPoint(lat, lon);
-				} else {
-					const offsets = [
-						[0, 0],
-						[-buffer, -buffer], [-buffer, buffer], [buffer, -buffer], [buffer, buffer],
-						[-buffer, 0], [buffer, 0], [0, -buffer], [0, buffer]
-					];
-					for (const [dy, dx] of offsets) {
-						if (checkPoint(lat + dy, lon + dx)) {
-							res = true;
-							break;
-						}
-					}
-				}
+				const res = buffer === 0 ? checkPoint(lat, lon) : [
+					[0, 0], [-buffer, -buffer], [-buffer, buffer], [buffer, -buffer], [buffer, buffer],
+					[-buffer, 0], [buffer, 0], [0, -buffer], [0, buffer]
+				].some(([dy, dx]) => checkPoint(lat + dy, lon + dx));
 				landCache[cacheKey] = res;
 				return res;
 			}
